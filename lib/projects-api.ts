@@ -2,6 +2,8 @@
 // do formato snake_case usado na serialização padrão do backend.
 import type { Project } from "@/data/projects";
 
+type ProjectStatus = Project["status"];
+
 type ApiProject = {
   slug: string;
   name: string;
@@ -9,24 +11,48 @@ type ApiProject = {
   description: string;
   repository_url: string;
   website_url: string;
-  status: string;
+  status: ProjectStatus;
   featured: boolean;
 };
+
+// Aceita somente links HTTPS válidos para evitar destinos inesperados nos cards.
+function isHttpsUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 function isApiProject(value: unknown): value is ApiProject {
   if (typeof value !== "object" || value === null) return false;
   const project = value as Record<string, unknown>;
+  const validStatuses: ProjectStatus[] = [
+    "Ativo",
+    "Em desenvolvimento",
+    "Experimental",
+  ];
 
-  // Validamos os campos essenciais para evitar que uma resposta inesperada quebre os cards.
+  let repositoryHostIsValid = false;
+  if (isHttpsUrl(project.repository_url)) {
+    repositoryHostIsValid = new URL(project.repository_url).hostname === "github.com";
+  }
+
+  // Validamos campos, status e destinos antes de renderizar dados recebidos da API.
   return (
     typeof project.slug === "string" &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(project.slug) &&
     typeof project.name === "string" &&
+    project.name.trim().length > 0 &&
     typeof project.category === "string" &&
+    project.category.trim().length > 0 &&
     typeof project.description === "string" &&
-    typeof project.repository_url === "string" &&
-    typeof project.website_url === "string" &&
-    typeof project.status === "string" &&
-    typeof project.featured === "boolean"
+    typeof project.featured === "boolean" &&
+    validStatuses.includes(project.status as ProjectStatus) &&
+    repositoryHostIsValid &&
+    isHttpsUrl(project.website_url)
   );
 }
 
@@ -37,7 +63,7 @@ function toProject(project: ApiProject): Project {
     description: project.description,
     repositoryUrl: project.repository_url,
     websiteUrl: project.website_url,
-    status: project.status === "Experimental" ? "Experimental" : project.status === "Ativo" ? "Ativo" : "Em desenvolvimento",
+    status: project.status,
     featured: project.featured,
   };
 }
@@ -47,7 +73,7 @@ export async function fetchPublicProjects(): Promise<Project[]> {
   if (!configuredBaseUrl) return [];
 
   // Remove barras finais para compor uma URL consistente sem duplicar separadores.
-  const baseUrl = configuredBaseUrl.replace(/\/+$/, "");
+  const baseUrl = configuredBaseUrl.replace(/\\/+$/, "");
   const response = await fetch(`${baseUrl}/api/v1/projects`, {
     method: "GET",
     headers: { Accept: "application/json" },
