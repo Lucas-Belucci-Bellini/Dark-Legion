@@ -1,21 +1,19 @@
 # Catálogo público de sites
 
-Este documento registra a origem dos links exibidos no portal Dark Legion.
+O portal apresenta **78 repositórios públicos** do catálogo central. Desses, **12 possuem um site com URL marcada como verificada**; os outros 66 continuam visíveis pelo link do GitHub, sem exibir domínios presumidos.
 
-## Fonte de dados
+## Fonte e regras
 
 A lista foi extraída de `docs/project-catalog.json` do repositório
-`Lucas-Belucci-Bellini/Lucas-Belucci-Bellini`, usando somente entradas que
-atendem simultaneamente a estes critérios:
+`Lucas-Belucci-Bellini/Lucas-Belucci-Bellini`.
 
-- `private = false`;
-- `website_status = "verified"`;
-- campo `website` preenchido.
+- Entram apenas registros com `private = false` e visibilidade pública.
+- O link de site só é preenchido quando `website_status = "verified"` e a URL usa HTTPS.
+- Projetos sem site verificado continuam no diretório, com o link do repositório.
+- Projetos privados, URLs não verificadas e domínios inferidos ficam de fora.
+- O catálogo versionado do Dark Legion é a fonte usada pelo frontend e pela API Rust.
 
-Não deduzimos domínios pelo nome do repositório. Projetos privados e URLs
-marcadas como `unreachable` ficam fora do portal.
-
-## Projetos incluídos
+## Sites verificados na última sincronização
 
 | Projeto | Repositório | Site |
 | --- | --- | --- |
@@ -32,8 +30,6 @@ marcadas como `unreachable` ficam fora do portal.
 | Hydra Launcher | [GitHub](https://github.com/Lucas-Belucci-Bellini/hydra) | [Abrir site](https://hydralauncher.gg) |
 | REA | [GitHub](https://github.com/Lucas-Belucci-Bellini/rea) | [Abrir site](https://rea.tools) |
 
-## Manutenção
+## Atualização
 
-Quando um site mudar, atualize primeiro o catálogo central do perfil e execute
-a verificação de sites daquele repositório. Depois sincronize os dados locais e
-a lista da API Rust. Nunca publique URLs privadas, inferidas ou não verificadas.
+Ao sincronizar a fonte central, preserve o filtro `private=false`. Não altere um site para verificado sem evidência atual. A lista reflete a última sincronização registrada, não monitoramento de disponibilidade em tempo real.
