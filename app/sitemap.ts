@@ -20,8 +20,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: project.featured ? 0.75 : 0.55,
   }));
 
-  return [
-    { url: base, changeFrequency: "weekly", priority: 1 },
-    ...projectEntries,
-  ];
+  return [{ url: base, changeFrequency: "weekly", priority: 1 }, ...projectEntries];
 }
