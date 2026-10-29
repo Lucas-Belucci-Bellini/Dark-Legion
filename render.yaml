@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: dark-legion-api
+    runtime: rust
+    plan: free
+    buildCommand: cargo build --manifest-path backend/Cargo.toml --release
+    startCommand: ./backend/target/release/dark-legion-api
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: RUST_LOG
+        value: info
+      - key: FRONTEND_ORIGIN
+        sync: false
