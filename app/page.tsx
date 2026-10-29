@@ -9,7 +9,7 @@ export default function HomePage() {
   const [category, setCategory] = useState("Todos");
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(projects.map((project) => project.category))].sort()],
+    () => ["Todos", ...Array.from(new Set(projects.map((project) => project.category))).sort()],
     [],
   );
 
