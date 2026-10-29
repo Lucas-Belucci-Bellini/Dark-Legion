@@ -81,7 +81,9 @@ h1 span { color: var(--gold); }
 .card-topline { display: flex; justify-content: space-between; align-items: center; }
 .card-index { font: 11px "DM Mono", monospace; color: #777d88; }
 .project-status { display: inline-flex; align-items: center; gap: 7px; font-size: 9px; color: #aeb4bd; }
-.project-status span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }\n.project-status[data-status="Em desenvolvimento"] span { background: var(--gold); }\n.project-status[data-status="Experimental"] span { background: #a78bfa; }
+.project-status span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.project-status[data-status="Em desenvolvimento"] span { background: var(--gold); }
+.project-status[data-status="Experimental"] span { background: #a78bfa; }
 .project-category { margin: 25px 0 7px; color: var(--gold); font: 10px "DM Mono", monospace; letter-spacing: .5px; }
 .project-card h3 { margin: 0; font-size: 19px; letter-spacing: -.5px; }
 .project-description { margin: 12px 0 25px; color: #999eaa; font-size: 11px; line-height: 1.8; }
