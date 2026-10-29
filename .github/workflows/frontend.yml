@@ -8,6 +8,7 @@ on:
       - "data/**"
       - "lib/**"
       - "public/**"
+      - "README.md"
       - "package.json"
       - "tsconfig.json"
       - "next.config.ts"
