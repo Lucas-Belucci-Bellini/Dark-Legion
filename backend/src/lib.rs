@@ -54,8 +54,8 @@ fn public_projects() -> Vec<Project> {
 
 /// Build the read-only API. Only GET and OPTIONS are exposed.
 pub fn app() -> Router {
-    let frontend_origin = std::env::var("FRONTEND_ORIGIN")
-        .unwrap_or_else(|_| "http://localhost:3000".to_owned());
+    let frontend_origin =
+        std::env::var("FRONTEND_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".to_owned());
     let origin = frontend_origin
         .parse::<HeaderValue>()
         .unwrap_or_else(|_| HeaderValue::from_static("http://localhost:3000"));
@@ -68,13 +68,18 @@ pub fn app() -> Router {
         .route("/health", get(health))
         .route("/api/v1/projects", get(list_projects))
         .route("/api/v1/projects/{slug}", get(get_project))
-        .with_state(AppState { projects: public_projects() })
+        .with_state(AppState {
+            projects: public_projects(),
+        })
         .layer(cors)
         .layer(TraceLayer::new_for_http())
 }
 
 async fn health() -> Json<HealthResponse> {
-    Json(HealthResponse { status: "ok", service: "dark-legion-api" })
+    Json(HealthResponse {
+        status: "ok",
+        service: "dark-legion-api",
+    })
 }
 
 async fn list_projects(
@@ -82,28 +87,49 @@ async fn list_projects(
     Query(filters): Query<ProjectFilters>,
 ) -> Json<Vec<Project>> {
     let query = filters.q.as_deref().unwrap_or("").trim().to_lowercase();
-    let category = filters.category.as_deref().unwrap_or("").trim().to_lowercase();
+    let category = filters
+        .category
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .to_lowercase();
 
-    let mut projects: Vec<Project> = state.projects.into_iter().filter(|project| {
-        let matches_query = query.is_empty()
-            || project.name.to_lowercase().contains(&query)
-            || project.slug.to_lowercase().contains(&query)
-            || project.description.to_lowercase().contains(&query)
-            || project.category.to_lowercase().contains(&query)
-            || project.category_label.to_lowercase().contains(&query);
-        let matches_category = category.is_empty()
-            || project.category.to_lowercase() == category
-            || project.category_label.to_lowercase() == category;
-        let matches_featured = filters.featured.map_or(true, |value| project.featured == value);
-        matches_query && matches_category && matches_featured
-    }).collect();
+    let mut projects: Vec<Project> = state
+        .projects
+        .into_iter()
+        .filter(|project| {
+            let matches_query = query.is_empty()
+                || project.name.to_lowercase().contains(&query)
+                || project.slug.to_lowercase().contains(&query)
+                || project.description.to_lowercase().contains(&query)
+                || project.category.to_lowercase().contains(&query)
+                || project.category_label.to_lowercase().contains(&query);
+            let matches_category = category.is_empty()
+                || project.category.to_lowercase() == category
+                || project.category_label.to_lowercase() == category;
+            let matches_featured = filters
+                .featured
+                .is_none_or(|value| project.featured == value);
 
-    projects.sort_by(|a, b| b.marketing_priority.cmp(&a.marketing_priority).then_with(|| a.name.cmp(&b.name)));
+            matches_query && matches_category && matches_featured
+        })
+        .collect();
+
+    projects.sort_by(|a, b| {
+        b.marketing_priority
+            .cmp(&a.marketing_priority)
+            .then_with(|| a.name.cmp(&b.name))
+    });
+
     Json(projects)
 }
 
 async fn get_project(State(state): State<AppState>, Path(slug): Path<String>) -> Response {
-    match state.projects.into_iter().find(|project| project.slug == slug) {
+    match state
+        .projects
+        .into_iter()
+        .find(|project| project.slug == slug)
+    {
         Some(project) => Json(project).into_response(),
         None => (
             StatusCode::NOT_FOUND,
@@ -111,7 +137,8 @@ async fn get_project(State(state): State<AppState>, Path(slug): Path<String>) ->
                 error: "project_not_found",
                 message: "Nenhum projeto público corresponde ao identificador informado.",
             }),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
@@ -123,13 +150,22 @@ mod tests {
     use tower::ServiceExt;
 
     async fn request(uri: &str) -> Response {
-        app().oneshot(Request::builder().uri(uri).body(Body::empty()).unwrap()).await.unwrap()
+        app()
+            .oneshot(
+                Request::builder()
+                    .uri(uri)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap()
     }
 
     #[tokio::test]
     async fn health_endpoint_returns_ok() {
         let response = request("/health").await;
         assert_eq!(response.status(), StatusCode::OK);
+
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["status"], "ok");
@@ -139,11 +175,18 @@ mod tests {
     async fn list_contains_public_catalog_and_optional_websites() {
         let response = request("/api/v1/projects").await;
         assert_eq!(response.status(), StatusCode::OK);
+
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
+
         assert!(projects.len() >= 70);
-        assert!(projects.iter().all(|p| p.repository_url.starts_with("https://github.com/")));
-        assert!(projects.iter().filter_map(|p| p.website_url.as_ref()).all(|url| url.starts_with("https://")));
+        assert!(projects
+            .iter()
+            .all(|project| project.repository_url.starts_with("https://github.com/")));
+        assert!(projects
+            .iter()
+            .filter_map(|project| project.website_url.as_ref())
+            .all(|url| url.starts_with("https://")));
     }
 
     #[tokio::test]
@@ -151,18 +194,22 @@ mod tests {
         let response = request("/api/v1/projects?q=nexora").await;
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
-        assert!(projects.iter().any(|p| p.slug == "nexora"));
-        assert!(projects.iter().all(|p| p.name.to_lowercase().contains("nexora")
-            || p.slug.to_lowercase().contains("nexora")
-            || p.description.to_lowercase().contains("nexora")
-            || p.category.to_lowercase().contains("nexora")
-            || p.category_label.to_lowercase().contains("nexora")));
+
+        assert!(projects.iter().any(|project| project.slug == "nexora"));
+        assert!(projects.iter().all(|project| {
+            project.name.to_lowercase().contains("nexora")
+                || project.slug.to_lowercase().contains("nexora")
+                || project.description.to_lowercase().contains("nexora")
+                || project.category.to_lowercase().contains("nexora")
+                || project.category_label.to_lowercase().contains("nexora")
+        }));
     }
 
     #[tokio::test]
     async fn project_detail_returns_matching_slug() {
         let response = request("/api/v1/projects/nexora").await;
         assert_eq!(response.status(), StatusCode::OK);
+
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let project: Project = serde_json::from_slice(&body).unwrap();
         assert_eq!(project.slug, "nexora");
@@ -170,6 +217,7 @@ mod tests {
 
     #[tokio::test]
     async fn unknown_project_returns_404() {
-        assert_eq!(request("/api/v1/projects/not-public").await.status(), StatusCode::NOT_FOUND);
+        let response = request("/api/v1/projects/not-public").await;
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }
