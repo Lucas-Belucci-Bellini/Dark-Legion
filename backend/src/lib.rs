@@ -230,7 +230,10 @@ mod tests {
     #[tokio::test]
     async fn catalog_contains_unique_slugs() {
         let projects = public_projects();
-        let mut slugs: Vec<&str> = projects.iter().map(|project| project.slug.as_str()).collect();
+        let mut slugs: Vec<&str> = projects
+            .iter()
+            .map(|project| project.slug.as_str())
+            .collect();
         slugs.sort_unstable();
         slugs.dedup();
         assert_eq!(slugs.len(), projects.len());
