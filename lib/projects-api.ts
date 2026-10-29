@@ -10,12 +10,14 @@ type ApiProject = {
   website_url: string | null;
   status: string;
   featured: boolean;
+  marketing_priority: number;
 };
 
 function isSafeHttpsUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
-    return new URL(value).protocol === "https:";
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname);
   } catch {
     return false;
   }
@@ -26,6 +28,7 @@ function isApiProject(value: unknown): value is ApiProject {
   const item = value as Record<string, unknown>;
   return (
     typeof item.slug === "string" &&
+    /^[a-z0-9-]+$/.test(item.slug) &&
     typeof item.name === "string" &&
     typeof item.category === "string" &&
     typeof item.category_label === "string" &&
@@ -33,7 +36,11 @@ function isApiProject(value: unknown): value is ApiProject {
     isSafeHttpsUrl(item.repository_url) &&
     (item.website_url === null || isSafeHttpsUrl(item.website_url)) &&
     typeof item.status === "string" &&
-    typeof item.featured === "boolean"
+    typeof item.featured === "boolean" &&
+    typeof item.marketing_priority === "number" &&
+    Number.isInteger(item.marketing_priority) &&
+    item.marketing_priority >= 0 &&
+    item.marketing_priority <= 100
   );
 }
 
@@ -48,6 +55,7 @@ function toProject(item: ApiProject): Project {
     websiteUrl: item.website_url,
     status: item.status,
     featured: item.featured,
+    marketingPriority: item.marketing_priority,
   };
 }
 
@@ -62,7 +70,11 @@ export async function fetchPublicProjects(): Promise<Project[]> {
     throw new Error("NEXT_PUBLIC_DARK_LEGION_API_URL não é uma URL válida.");
   }
 
-  if (baseUrl.protocol !== "https:" && baseUrl.hostname !== "localhost" && baseUrl.hostname !== "127.0.0.1") {
+  if (
+    baseUrl.protocol !== "https:" &&
+    baseUrl.hostname !== "localhost" &&
+    baseUrl.hostname !== "127.0.0.1"
+  ) {
     throw new Error("A API pública deve usar HTTPS.");
   }
 
