@@ -73,7 +73,7 @@ export async function fetchPublicProjects(): Promise<Project[]> {
   if (!configuredBaseUrl) return [];
 
   // Remove barras finais para compor uma URL consistente sem duplicar separadores.
-  const baseUrl = configuredBaseUrl.replace(/\\/+$/, "");
+  const baseUrl = configuredBaseUrl.replace(/\/+$/, "");
   const response = await fetch(`${baseUrl}/api/v1/projects`, {
     method: "GET",
     headers: { Accept: "application/json" },
