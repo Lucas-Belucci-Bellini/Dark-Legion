@@ -136,7 +136,7 @@ export default function HomePage() {
               <article className={project.featured ? "project-card featured-card" : "project-card"} key={project.name}>
                 <div className="card-topline">
                   <span className="card-index">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="project-status"><span />{project.status}</span>
+                  <span className="project-status" data-status={project.status}><span aria-hidden="true" />{project.status}</span>
                 </div>
                 <p className="project-category">{project.category}</p>
                 <h3>{project.name}</h3>
