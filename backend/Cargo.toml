@@ -1,0 +1,20 @@
+[package]
+name = "dark-legion-api"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.82"
+description = "Read-only public project catalog API for Dark Legion"
+license = "MIT"
+
+[dependencies]
+axum = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
