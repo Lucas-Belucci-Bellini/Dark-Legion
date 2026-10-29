@@ -140,3 +140,4 @@ h1 span { color: var(--gold); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+.no-website { color: #777d88; font-size: 10px; font-weight: 500; }
