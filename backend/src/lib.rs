@@ -141,8 +141,8 @@ fn public_projects() -> Vec<Project> {
 
 /// Monta a aplicação. A origem permitida pode ser configurada com FRONTEND_ORIGIN.
 pub fn app() -> Router {
-    let frontend_origin = std::env::var("FRONTEND_ORIGIN")
-        .unwrap_or_else(|_| "http://localhost:3000".to_owned());
+    let frontend_origin =
+        std::env::var("FRONTEND_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".to_owned());
     let origin = frontend_origin
         .parse::<HeaderValue>()
         .unwrap_or_else(|_| HeaderValue::from_static("http://localhost:3000"));
@@ -156,7 +156,9 @@ pub fn app() -> Router {
         .route("/health", get(health))
         .route("/api/v1/projects", get(list_projects))
         .route("/api/v1/projects/{slug}", get(get_project))
-        .with_state(AppState { projects: public_projects() })
+        .with_state(AppState {
+            projects: public_projects(),
+        })
         .layer(cors)
         .layer(TraceLayer::new_for_http())
 }
@@ -172,11 +174,12 @@ async fn list_projects(State(state): State<AppState>) -> Json<Vec<Project>> {
     Json(state.projects)
 }
 
-async fn get_project(
-    State(state): State<AppState>,
-    Path(slug): Path<String>,
-) -> Response {
-    match state.projects.into_iter().find(|project| project.slug == slug) {
+async fn get_project(State(state): State<AppState>, Path(slug): Path<String>) -> Response {
+    match state
+        .projects
+        .into_iter()
+        .find(|project| project.slug == slug)
+    {
         Some(project) => Json(project).into_response(),
         None => (
             StatusCode::NOT_FOUND,
@@ -184,7 +187,8 @@ async fn get_project(
                 error: "project_not_found",
                 message: "Nenhum projeto público corresponde ao identificador informado.",
             }),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
@@ -197,9 +201,15 @@ mod tests {
 
     #[tokio::test]
     async fn health_endpoint_returns_ok() {
-        let response = app().oneshot(
-            Request::builder().uri("/health").body(Body::empty()).unwrap()
-        ).await.unwrap();
+        let response = app()
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
@@ -210,22 +220,36 @@ mod tests {
 
     #[tokio::test]
     async fn list_projects_returns_public_catalog() {
-        let response = app().oneshot(
-            Request::builder().uri("/api/v1/projects").body(Body::empty()).unwrap()
-        ).await.unwrap();
+        let response = app()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/projects")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
         assert_eq!(projects.len(), 9);
-        assert!(projects.iter().all(|project| !project.repository_url.is_empty() && !project.website_url.is_empty()));
+        assert!(projects
+            .iter()
+            .all(|project| !project.repository_url.is_empty() && !project.website_url.is_empty()));
     }
 
     #[tokio::test]
     async fn project_detail_returns_matching_slug() {
-        let response = app().oneshot(
-            Request::builder().uri("/api/v1/projects/nexora").body(Body::empty()).unwrap()
-        ).await.unwrap();
+        let response = app()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/projects/nexora")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
@@ -236,9 +260,15 @@ mod tests {
 
     #[tokio::test]
     async fn unknown_project_returns_404() {
-        let response = app().oneshot(
-            Request::builder().uri("/api/v1/projects/not-a-public-project").body(Body::empty()).unwrap()
-        ).await.unwrap();
+        let response = app()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/projects/not-a-public-project")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
