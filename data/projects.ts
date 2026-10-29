@@ -10,6 +10,7 @@ export type Project = {
   websiteUrl: string | null;
   status: string;
   featured: boolean;
+  marketingPriority: number;
 };
 
 export const projects: Project[] = catalog.map((item) => ({
@@ -22,4 +23,5 @@ export const projects: Project[] = catalog.map((item) => ({
   websiteUrl: item.website_url,
   status: item.status,
   featured: item.featured,
+  marketingPriority: item.marketing_priority,
 }));
