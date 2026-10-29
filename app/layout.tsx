@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// Metadados iniciais para compartilhamento e indexação do portal público.
+const description =
+  "Explore os projetos públicos de Lucas Belucci Bellini: repositórios, aplicações, ferramentas e experiências web.";
+
 export const metadata: Metadata = {
   title: {
-    default: "Dark Legion — Projetos e tecnologia",
+    default: "Dark Legion — Diretório de projetos",
     template: "%s | Dark Legion",
   },
-  description:
-    "Conheça a Dark Legion: um portfólio de projetos públicos de software, jogos, ferramentas e experiências web.",
+  description,
   applicationName: "Dark Legion",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Dark Legion",
+    title: "Dark Legion — Diretório de projetos",
+    description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
