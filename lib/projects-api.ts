@@ -37,7 +37,7 @@ function toProject(project: ApiProject): Project {
     description: project.description,
     repositoryUrl: project.repository_url,
     websiteUrl: project.website_url,
-    status: project.status === "Experimental" ? "Experimental" : "Em desenvolvimento",
+    status: project.status === "Experimental" ? "Experimental" : project.status === "Ativo" ? "Ativo" : "Em desenvolvimento",
     featured: project.featured,
   };
 }
