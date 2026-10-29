@@ -4,51 +4,53 @@ import { useEffect, useMemo, useState } from "react";
 import { projects as fallbackProjects, type Project } from "@/data/projects";
 import { fetchPublicProjects } from "@/lib/projects-api";
 
-// Página inicial responsiva com busca e filtro por categoria, sem dependências extras.
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todos");
-  // O catálogo local mantém a página utilizável mesmo sem a API Rust configurada.
   const [projectCatalog, setProjectCatalog] = useState<Project[]>(fallbackProjects);
   const [catalogSource, setCatalogSource] = useState<"local" | "api">("local");
 
   useEffect(() => {
-    let isCurrent = true;
-
-    // Sem URL pública, não tenta buscar a API e usa o catálogo editorial versionado.
+    let active = true;
     if (!process.env.NEXT_PUBLIC_DARK_LEGION_API_URL) return;
 
     fetchPublicProjects()
       .then((remoteProjects) => {
-        if (!isCurrent || remoteProjects.length === 0) return;
+        if (!active || remoteProjects.length === 0) return;
         setProjectCatalog(remoteProjects);
         setCatalogSource("api");
       })
       .catch(() => {
-        // Falhas de rede não derrubam o portal; o catálogo local permanece disponível.
-        if (isCurrent) setCatalogSource("local");
+        if (active) setCatalogSource("local");
       });
 
     return () => {
-      isCurrent = false;
+      active = false;
     };
   }, []);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(projectCatalog.map((project) => project.category))).sort()],
+    () => ["Todos", ...Array.from(new Set(projectCatalog.map((project) => project.categoryLabel))).sort()],
     [projectCatalog],
   );
 
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-
     return projectCatalog.filter((project) => {
-      const matchesCategory = category === "Todos" || project.category === category;
-      const searchableText =
-        `${project.name} ${project.category} ${project.description}`.toLocaleLowerCase("pt-BR");
-      return matchesCategory && searchableText.includes(normalizedQuery);
+      const matchesCategory = category === "Todos" || project.categoryLabel === category;
+      const searchable = [
+        project.name,
+        project.slug,
+        project.category,
+        project.categoryLabel,
+        project.description,
+        project.status,
+      ].join(" ").toLocaleLowerCase("pt-BR");
+      return matchesCategory && searchable.includes(normalizedQuery);
     });
   }, [category, projectCatalog, query]);
+
+  const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;
 
   return (
     <main>
@@ -63,9 +65,7 @@ export default function HomePage() {
         <nav aria-label="Navegação principal">
           <a href="#projetos">Projetos</a>
           <a href="#sobre">Sobre</a>
-          <a href="https://github.com/Lucas-Belucci-Bellini" target="_blank" rel="noreferrer">
-            GitHub ↗
-          </a>
+          <a href="https://github.com/Lucas-Belucci-Bellini" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </nav>
       </header>
 
@@ -75,19 +75,19 @@ export default function HomePage() {
           <p className="eyebrow"><span className="status-dot" /> PORTFÓLIO PÚBLICO · 2026</p>
           <h1>Ideias viram<br /><span>sistemas reais.</span></h1>
           <p className="hero-copy">
-            A Dark Legion reúne projetos independentes de software, experiências web,
-            ferramentas e jogos. Explore o que já tem repositório e site públicos.
+            Um diretório central para explorar projetos públicos, repositórios,
+            aplicações e experiências desenvolvidas no ecossistema de Lucas Belucci Bellini.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#projetos">Explorar projetos <span>↓</span></a>
-            <a className="button button-secondary" href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noreferrer">
+            <a className="button button-secondary" href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noopener noreferrer">
               Ver repositório ↗
             </a>
           </div>
           <div className="hero-meta">
-            <div><strong>{projectCatalog.length.toString().padStart(2, "0")}</strong><span>projetos catalogados</span></div>
-            <div><strong>TS</strong><span>frontend TypeScript</span></div>
-            <div><strong>PT-BR</strong><span>idioma principal</span></div>
+            <div><strong>{projectCatalog.length.toString().padStart(2, "0")}</strong><span>repositórios públicos</span></div>
+            <div><strong>{verifiedWebsiteCount.toString().padStart(2, "0")}</strong><span>sites verificados na fonte</span></div>
+            <div><strong>TS + RS</strong><span>frontend e API</span></div>
           </div>
         </div>
         <div className="hero-orbit" aria-hidden="true">
@@ -104,11 +104,11 @@ export default function HomePage() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">01 / DIRETÓRIO</p>
-            <h2>Projetos em destaque<span>.</span></h2>
-            <p className="section-copy">Uma seleção inicial de projetos com código público e uma página web associada.</p>
-            <p className="section-copy" aria-live="polite">Fonte do catálogo: {catalogSource === "api" ? "API Rust" : "catálogo local de segurança"}</p>
+            <h2>Projetos públicos<span>.</span></h2>
+            <p className="section-copy">Pesquise os repositórios públicos. Sites só aparecem quando a URL está verificada no catálogo central.</p>
+            <p className="section-copy" aria-live="polite">Fonte ativa: {catalogSource === "api" ? "API Rust" : "catálogo local versionado"}.</p>
           </div>
-          <span className="count-pill">{visibleProjects.length.toString().padStart(2, "0")} RESULTADOS</span>
+          <span className="count-pill">{visibleProjects.length.toString().padStart(2, "0")} / {projectCatalog.length.toString().padStart(2, "0")} RESULTADOS</span>
         </div>
 
         <div className="filters">
@@ -119,7 +119,7 @@ export default function HomePage() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por nome, categoria..."
+              placeholder="Buscar nome, tecnologia, categoria..."
             />
           </label>
           <label className="filter-label">
@@ -133,17 +133,21 @@ export default function HomePage() {
         {visibleProjects.length > 0 ? (
           <div className="project-grid">
             {visibleProjects.map((project, index) => (
-              <article className={project.featured ? "project-card featured-card" : "project-card"} key={project.name}>
+              <article className={project.featured ? "project-card featured-card" : "project-card"} key={project.slug}>
                 <div className="card-topline">
                   <span className="card-index">{String(index + 1).padStart(2, "0")}</span>
                   <span className="project-status"><span />{project.status}</span>
                 </div>
-                <p className="project-category">{project.category}</p>
+                <p className="project-category">{project.categoryLabel}</p>
                 <h3>{project.name}</h3>
                 <p className="project-description">{project.description}</p>
                 <div className="card-links">
-                  <a href={project.websiteUrl} target="_blank" rel="noreferrer">Abrir site <span>↗</span></a>
-                  <a className="repo-link" href={project.repositoryUrl} target="_blank" rel="noreferrer">Código-fonte <span>↗</span></a>
+                  {project.websiteUrl ? (
+                    <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">Abrir site <span>↗</span></a>
+                  ) : (
+                    <span className="no-website" title="Nenhum site verificado no catálogo central">Sem site verificado</span>
+                  )}
+                  <a className="repo-link" href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">Código-fonte <span>↗</span></a>
                 </div>
               </article>
             ))}
@@ -166,9 +170,9 @@ export default function HomePage() {
           <p className="eyebrow">02 / PRINCÍPIOS</p>
           <h2>Construir com intenção.<br /><span>Documentar com clareza.</span></h2>
           <p>
-            Este portal é uma vitrine pública: apresenta apenas projetos selecionados
-            que possuem repositório público e site associado. Projetos privados,
-            credenciais, detalhes internos e trabalhos ainda não selecionados ficam de fora.
+            Este portal concentra projetos que possuem repositórios públicos.
+            Endereços de sites são exibidos somente quando constam como verificados
+            na fonte central. Projetos privados, credenciais e detalhes internos não são publicados.
           </p>
         </div>
       </section>
@@ -177,8 +181,8 @@ export default function HomePage() {
         <a className="footer-brand" href="#inicio">DARK LEGION <span>®</span></a>
         <p>Um projeto independente de Lucas Belucci Bellini.</p>
         <div>
-          <a href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noreferrer">Repositório</a>
-          <a href="https://github.com/Lucas-Belucci-Bellini" target="_blank" rel="noreferrer">GitHub pessoal</a>
+          <a href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noopener noreferrer">Repositório</a>
+          <a href="https://github.com/Lucas-Belucci-Bellini" target="_blank" rel="noopener noreferrer">GitHub pessoal</a>
         </div>
         <small>© {new Date().getFullYear()} Dark Legion. Feito para evoluir.</small>
       </footer>
