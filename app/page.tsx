@@ -1,28 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { projects } from "@/data/projects";
+import { useEffect, useMemo, useState } from "react";
+import { projects as fallbackProjects, type Project } from "@/data/projects";
+import { fetchPublicProjects } from "@/lib/projects-api";
 
 // Página inicial responsiva com busca e filtro por categoria, sem dependências extras.
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todos");
+  // O catálogo local mantém a página utilizável mesmo sem a API Rust configurada.
+  const [projectCatalog, setProjectCatalog] = useState<Project[]>(fallbackProjects);
+  const [catalogSource, setCatalogSource] = useState<"local" | "api">("local");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    // Sem URL pública, não tenta buscar a API e usa o catálogo editorial versionado.
+    if (!process.env.NEXT_PUBLIC_DARK_LEGION_API_URL) return;
+
+    fetchPublicProjects()
+      .then((remoteProjects) => {
+        if (!isCurrent || remoteProjects.length === 0) return;
+        setProjectCatalog(remoteProjects);
+        setCatalogSource("api");
+      })
+      .catch(() => {
+        // Falhas de rede não derrubam o portal; o catálogo local permanece disponível.
+        if (isCurrent) setCatalogSource("local");
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(projects.map((project) => project.category))).sort()],
-    [],
+    () => ["Todos", ...Array.from(new Set(projectCatalog.map((project) => project.category))).sort()],
+    [projectCatalog],
   );
 
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
 
-    return projects.filter((project) => {
+    return projectCatalog.filter((project) => {
       const matchesCategory = category === "Todos" || project.category === category;
       const searchableText =
         `${project.name} ${project.category} ${project.description}`.toLocaleLowerCase("pt-BR");
       return matchesCategory && searchableText.includes(normalizedQuery);
     });
-  }, [category, query]);
+  }, [category, projectCatalog, query]);
 
   return (
     <main>
@@ -59,7 +85,7 @@ export default function HomePage() {
             </a>
           </div>
           <div className="hero-meta">
-            <div><strong>{projects.length.toString().padStart(2, "0")}</strong><span>projetos catalogados</span></div>
+            <div><strong>{projectCatalog.length.toString().padStart(2, "0")}</strong><span>projetos catalogados</span></div>
             <div><strong>TS</strong><span>frontend TypeScript</span></div>
             <div><strong>PT-BR</strong><span>idioma principal</span></div>
           </div>
@@ -80,6 +106,7 @@ export default function HomePage() {
             <p className="eyebrow">01 / DIRETÓRIO</p>
             <h2>Projetos em destaque<span>.</span></h2>
             <p className="section-copy">Uma seleção inicial de projetos com código público e uma página web associada.</p>
+            <p className="section-copy" aria-live="polite">Fonte do catálogo: {catalogSource === "api" ? "API Rust" : "catálogo local de segurança"}</p>
           </div>
           <span className="count-pill">{visibleProjects.length.toString().padStart(2, "0")} RESULTADOS</span>
         </div>
@@ -109,7 +136,7 @@ export default function HomePage() {
               <article className={project.featured ? "project-card featured-card" : "project-card"} key={project.name}>
                 <div className="card-topline">
                   <span className="card-index">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="project-status"><span />{project.status}</span>
+                  <span className="project-status" data-status={project.status}><span aria-hidden="true" />{project.status}</span>
                 </div>
                 <p className="project-category">{project.category}</p>
                 <h3>{project.name}</h3>
