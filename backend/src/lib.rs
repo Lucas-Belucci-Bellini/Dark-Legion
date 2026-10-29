@@ -201,6 +201,42 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn featured_filter_returns_only_featured_projects() {
+        let response = request("/api/v1/projects?featured=true").await;
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
+
+        assert!(!projects.is_empty());
+        assert!(projects.iter().all(|project| project.featured));
+    }
+
+    #[tokio::test]
+    async fn category_filter_matches_category_label() {
+        let response = request("/api/v1/projects?category=Games").await;
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
+
+        assert!(!projects.is_empty());
+        assert!(projects.iter().all(|project| {
+            project.category.to_lowercase() == "games"
+                || project.category_label.to_lowercase() == "games"
+        }));
+    }
+
+    #[tokio::test]
+    async fn catalog_contains_unique_slugs() {
+        let projects = public_projects();
+        let mut slugs: Vec<&str> = projects.iter().map(|project| project.slug.as_str()).collect();
+        slugs.sort_unstable();
+        slugs.dedup();
+        assert_eq!(slugs.len(), projects.len());
+    }
+
+    #[tokio::test]
     async fn project_detail_returns_matching_slug() {
         let response = request("/api/v1/projects/nexora").await;
         assert_eq!(response.status(), StatusCode::OK);
