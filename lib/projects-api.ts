@@ -1,44 +1,53 @@
-// Tipos e adaptador da API Rust para manter a interface TypeScript independente
-// do formato snake_case usado na serialização padrão do backend.
 import type { Project } from "@/data/projects";
 
 type ApiProject = {
   slug: string;
   name: string;
   category: string;
+  category_label: string;
   description: string;
   repository_url: string;
-  website_url: string;
+  website_url: string | null;
   status: string;
   featured: boolean;
 };
 
+function isSafeHttpsUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function isApiProject(value: unknown): value is ApiProject {
   if (typeof value !== "object" || value === null) return false;
-  const project = value as Record<string, unknown>;
-
-  // Validamos os campos essenciais para evitar que uma resposta inesperada quebre os cards.
+  const item = value as Record<string, unknown>;
   return (
-    typeof project.slug === "string" &&
-    typeof project.name === "string" &&
-    typeof project.category === "string" &&
-    typeof project.description === "string" &&
-    typeof project.repository_url === "string" &&
-    typeof project.website_url === "string" &&
-    typeof project.status === "string" &&
-    typeof project.featured === "boolean"
+    typeof item.slug === "string" &&
+    typeof item.name === "string" &&
+    typeof item.category === "string" &&
+    typeof item.category_label === "string" &&
+    typeof item.description === "string" &&
+    isSafeHttpsUrl(item.repository_url) &&
+    (item.website_url === null || isSafeHttpsUrl(item.website_url)) &&
+    typeof item.status === "string" &&
+    typeof item.featured === "boolean"
   );
 }
 
-function toProject(project: ApiProject): Project {
+function toProject(item: ApiProject): Project {
   return {
-    name: project.name,
-    category: project.category,
-    description: project.description,
-    repositoryUrl: project.repository_url,
-    websiteUrl: project.website_url,
-    status: project.status === "Experimental" ? "Experimental" : project.status === "Ativo" ? "Ativo" : "Em desenvolvimento",
-    featured: project.featured,
+    slug: item.slug,
+    name: item.name,
+    category: item.category,
+    categoryLabel: item.category_label,
+    description: item.description,
+    repositoryUrl: item.repository_url,
+    websiteUrl: item.website_url,
+    status: item.status,
+    featured: item.featured,
   };
 }
 
@@ -46,16 +55,26 @@ export async function fetchPublicProjects(): Promise<Project[]> {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_DARK_LEGION_API_URL?.trim();
   if (!configuredBaseUrl) return [];
 
-  // Remove barras finais para compor uma URL consistente sem duplicar separadores.
-  const baseUrl = configuredBaseUrl.replace(/\/+$/, "");
-  const response = await fetch(`${baseUrl}/api/v1/projects`, {
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(configuredBaseUrl);
+  } catch {
+    throw new Error("NEXT_PUBLIC_DARK_LEGION_API_URL não é uma URL válida.");
+  }
+
+  if (baseUrl.protocol !== "https:" && baseUrl.hostname !== "localhost" && baseUrl.hostname !== "127.0.0.1") {
+    throw new Error("A API pública deve usar HTTPS.");
+  }
+
+  const response = await fetch(new URL("/api/v1/projects", baseUrl), {
     method: "GET",
     headers: { Accept: "application/json" },
     cache: "no-store",
+    signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) {
-    throw new Error(`A API de projetos respondeu com HTTP ${response.status}.`);
+    throw new Error(`A API respondeu com HTTP ${response.status}.`);
   }
 
   const payload: unknown = await response.json();
