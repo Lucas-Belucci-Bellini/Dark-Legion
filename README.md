@@ -52,6 +52,10 @@ npm start
 - Se a API estiver indisponível ou responder com formato inválido, a página mantém o catálogo local; não há escrita de dados.
 - Configure `FRONTEND_ORIGIN` no backend com a origem real do frontend para liberar CORS.
 
+## Validação automatizada do frontend
+
+O workflow `Frontend` executa instalação de dependências, ESLint e build de produção em alterações relevantes. Como ainda não há `package-lock.json`, o CI usa `npm install`; a próxima melhoria é versionar o lockfile e migrar para `npm ci`.
+
 ## Próximos passos sugeridos
 
 - Revisar manualmente todos os links do catálogo.
