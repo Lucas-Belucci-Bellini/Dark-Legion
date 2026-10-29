@@ -1,0 +1,59 @@
+# Valida o frontend Next.js em cada alteração relevante.
+name: Frontend
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "data/**"
+      - "lib/**"
+      - "public/**"
+      - "package.json"
+      - "tsconfig.json"
+      - "next.config.ts"
+      - "eslint.config.mjs"
+      - ".github/workflows/frontend.yml"
+  push:
+    paths:
+      - "app/**"
+      - "data/**"
+      - "lib/**"
+      - "public/**"
+      - "package.json"
+      - "tsconfig.json"
+      - "next.config.ts"
+      - "eslint.config.mjs"
+      - ".github/workflows/frontend.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Install, lint and build
+    runs-on: ubuntu-latest
+    steps:
+      # Obtém exatamente o conteúdo enviado para a branch/PR.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Mantém a versão principal do runtime alinhada com a documentação do projeto.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # O repositório ainda não possui package-lock.json; npm install é usado até
+      # adicionarmos um lockfile versionado para permitir npm ci.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      # Verifica problemas estáticos antes de tentar gerar a versão de produção.
+      - name: Run ESLint
+        run: npm run lint
+
+      # Confirma que o Next.js consegue compilar a aplicação.
+      - name: Build production bundle
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
