@@ -1,12 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { projects as fallbackProjects, type Project } from "@/data/projects";
 import { fetchPublicProjects } from "@/lib/projects-api";
 
+type SortMode = "priority" | "name";
+
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todos");
+  const [sortMode, setSortMode] = useState<SortMode>("priority");
+  const [featuredOnly, setFeaturedOnly] = useState(false);
   const [projectCatalog, setProjectCatalog] = useState<Project[]>(fallbackProjects);
   const [catalogSource, setCatalogSource] = useState<"local" | "api">("local");
 
@@ -36,35 +41,49 @@ export default function HomePage() {
 
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-    return projectCatalog.filter((project) => {
-      const matchesCategory = category === "Todos" || project.categoryLabel === category;
-      const searchable = [
-        project.name,
-        project.slug,
-        project.category,
-        project.categoryLabel,
-        project.description,
-        project.status,
-      ].join(" ").toLocaleLowerCase("pt-BR");
-      return matchesCategory && searchable.includes(normalizedQuery);
-    });
-  }, [category, projectCatalog, query]);
+    return projectCatalog
+      .filter((project) => {
+        const matchesCategory = category === "Todos" || project.categoryLabel === category;
+        const matchesFeatured = !featuredOnly || project.featured;
+        const searchable = [
+          project.name,
+          project.slug,
+          project.category,
+          project.categoryLabel,
+          project.description,
+          project.status,
+        ].join(" ").toLocaleLowerCase("pt-BR");
+        return matchesCategory && matchesFeatured && searchable.includes(normalizedQuery);
+      })
+      .sort((a, b) =>
+        sortMode === "name"
+          ? a.name.localeCompare(b.name, "pt-BR")
+          : b.marketingPriority - a.marketingPriority || a.name.localeCompare(b.name, "pt-BR"),
+      );
+  }, [category, featuredOnly, projectCatalog, query, sortMode]);
 
   const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("Todos");
+    setFeaturedOnly(false);
+    setSortMode("priority");
+  }
 
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#inicio" aria-label="Dark Legion, início">
+        <Link className="brand" href="#inicio" aria-label="Dark Legion, início">
           <span className="brand-mark" aria-hidden="true">DL</span>
           <span>
             <strong>DARK LEGION</strong>
             <small>Laboratório independente de tecnologia</small>
           </span>
-        </a>
+        </Link>
         <nav aria-label="Navegação principal">
-          <a href="#projetos">Projetos</a>
-          <a href="#sobre">Sobre</a>
+          <Link href="#projetos">Projetos</Link>
+          <Link href="#sobre">Sobre</Link>
           <a href="https://github.com/Lucas-Belucci-Bellini" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </nav>
       </header>
@@ -79,7 +98,7 @@ export default function HomePage() {
             aplicações e experiências desenvolvidas no ecossistema de Lucas Belucci Bellini.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#projetos">Explorar projetos <span>↓</span></a>
+            <Link className="button button-primary" href="#projetos">Explorar projetos <span>↓</span></Link>
             <a className="button button-secondary" href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noopener noreferrer">
               Ver repositório ↗
             </a>
@@ -105,7 +124,7 @@ export default function HomePage() {
           <div>
             <p className="eyebrow">01 / DIRETÓRIO</p>
             <h2>Projetos públicos<span>.</span></h2>
-            <p className="section-copy">Pesquise os repositórios públicos. Sites só aparecem quando a URL está verificada no catálogo central.</p>
+            <p className="section-copy">Explore os repositórios, filtre por área e abra uma página dedicada para cada projeto.</p>
             <p className="section-copy" aria-live="polite">Fonte ativa: {catalogSource === "api" ? "API Rust" : "catálogo local versionado"}.</p>
           </div>
           <span className="count-pill">{visibleProjects.length.toString().padStart(2, "0")} / {projectCatalog.length.toString().padStart(2, "0")} RESULTADOS</span>
@@ -128,6 +147,25 @@ export default function HomePage() {
               {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
+          <label className="filter-label sort-filter">
+            <span className="sr-only">Ordenar projetos</span>
+            <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+              <option value="priority">Mais relevantes</option>
+              <option value="name">Ordem alfabética</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="filter-actions">
+          <button
+            className={featuredOnly ? "filter-chip active" : "filter-chip"}
+            type="button"
+            aria-pressed={featuredOnly}
+            onClick={() => setFeaturedOnly((current) => !current)}
+          >
+            <span aria-hidden="true">★</span> Somente destaques
+          </button>
+          <button className="text-button compact-button" type="button" onClick={clearFilters}>Limpar filtros</button>
         </div>
 
         {visibleProjects.length > 0 ? (
@@ -139,9 +177,10 @@ export default function HomePage() {
                   <span className="project-status"><span />{project.status}</span>
                 </div>
                 <p className="project-category">{project.categoryLabel}</p>
-                <h3>{project.name}</h3>
+                <h3><Link className="project-title-link" href={`/projects/${project.slug}`}>{project.name}</Link></h3>
                 <p className="project-description">{project.description}</p>
                 <div className="card-links">
+                  <Link href={`/projects/${project.slug}`}>Detalhes <span>→</span></Link>
                   {project.websiteUrl ? (
                     <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">Abrir site <span>↗</span></a>
                   ) : (
@@ -157,9 +196,7 @@ export default function HomePage() {
             <span>⌕</span>
             <h3>Nenhum projeto encontrado</h3>
             <p>Tente outro termo ou selecione uma categoria diferente.</p>
-            <button className="text-button" onClick={() => { setQuery(""); setCategory("Todos"); }}>
-              Limpar filtros
-            </button>
+            <button className="text-button" onClick={clearFilters}>Limpar filtros</button>
           </div>
         )}
       </section>
@@ -178,7 +215,7 @@ export default function HomePage() {
       </section>
 
       <footer className="site-footer">
-        <a className="footer-brand" href="#inicio">DARK LEGION <span>®</span></a>
+        <Link className="footer-brand" href="#inicio">DARK LEGION <span>®</span></Link>
         <p>Um projeto independente de Lucas Belucci Bellini.</p>
         <div>
           <a href="https://github.com/Lucas-Belucci-Bellini/Dark-Legion" target="_blank" rel="noopener noreferrer">Repositório</a>
