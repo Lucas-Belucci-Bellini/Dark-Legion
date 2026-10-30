@@ -6,6 +6,8 @@ on:
       - "backend/**"
       - "api/**"
       - "Cargo.toml"
+      - "src/**"
+      - "vercel.json"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
   pull_request:
@@ -38,9 +40,12 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: cargo test --all-targets
-      - name: Check Vercel Rust Function
+      - name: Check Vercel Rust formatting
         working-directory: .
-        run: cargo check --bin catalog
-      - name: Test Vercel Rust Function
+        run: cargo fmt --all -- --check
+      - name: Check Vercel Rust Functions
         working-directory: .
-        run: cargo test --bin catalog
+        run: cargo check --bins
+      - name: Test Vercel Rust Functions
+        working-directory: .
+        run: cargo test --bins
