@@ -1,0 +1,21 @@
+[package]
+name = "dark-legion-vercel-functions"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "postgres", "macros"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+vercel_runtime = "2"
+
+[[bin]]
+name = "catalog"
+path = "api/catalog.rs"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = 3
