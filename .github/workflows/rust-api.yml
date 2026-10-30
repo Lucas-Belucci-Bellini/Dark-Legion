@@ -5,10 +5,8 @@ on:
     paths:
       - "backend/**"
       - "api/**"
+      - "src/**"
       - "Cargo.toml"
-      - "src/**"
-      - "vercel.json"
-      - "src/**"
       - "vercel.json"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
@@ -16,12 +14,16 @@ on:
     paths:
       - "backend/**"
       - "api/**"
-      - "Cargo.toml"
       - "src/**"
+      - "Cargo.toml"
       - "vercel.json"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -38,11 +40,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - name: Check formatting
+      - name: Check Axum API formatting
         run: cargo fmt --all -- --check
-      - name: Run Clippy
+      - name: Run Axum Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
-      - name: Run tests
+      - name: Test Axum API
         run: cargo test --all-targets
       - name: Check Vercel Rust formatting
         working-directory: .
