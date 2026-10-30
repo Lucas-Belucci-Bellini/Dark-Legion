@@ -11,6 +11,8 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - "api/**"
+      - "Cargo.toml"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
   workflow_dispatch:
