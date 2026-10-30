@@ -1,26 +1,25 @@
 # Dark Legion
 
-Portal público de projetos: **Next.js + TypeScript** no frontend e **Rust + Axum** na API.
+Portal público para explorar os projetos e repositórios públicos do ecossistema.
 
-- Diretório pesquisável de repositórios públicos.
-- Links de sites exibidos somente quando verificados.
-- API somente leitura com busca, filtros e detalhes.
-- Catálogo local como fallback; projetos privados são excluídos.
+- **Frontend:** Next.js + TypeScript.
+- **API de produção:** Rust Functions na Vercel.
+- **API local:** Rust + Axum.
+- **Dados:** JSON versionado com PostgreSQL/SQLx opcional.
+- **Atualização:** GitHub Actions às 14h e 00h (Brasília).
 
-## Executar
+## Desenvolvimento
 
 ```bash
 npm install
 npm run dev
 ```
 
-Frontend: http://localhost:3000
+API Axum local:
 
 ```bash
 cd backend
 cargo run
 ```
 
-API: http://localhost:8080/health
-
-Configure `NEXT_PUBLIC_DARK_LEGION_API_URL` no frontend e `FRONTEND_ORIGIN` no backend para integrar os serviços. Veja [docs/architecture.md](docs/architecture.md) e [backend/README.md](backend/README.md).
+Arquitetura e configuração: [docs/architecture.md](docs/architecture.md) · [catálogo automático](docs/scheduled-catalog-analysis.md).
