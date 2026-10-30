@@ -23,7 +23,7 @@ pub struct Project {
 static DATABASE_POOL: OnceCell<PgPool> = OnceCell::const_new();
 
 pub fn bundled_catalog() -> Result<Vec<Project>, Error> {
-    Ok(serde_json::from_str(include_str!("../data/public-projects.json"))?)
+    Ok(serde_json::from_str(include_str!(\n        "../data/public-projects.json"\n    ))?)
 }
 
 async fn database_pool() -> Result<Option<&'static PgPool>, Error> {
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn bundled_catalog_has_unique_slugs_and_safe_urls() {
         let projects = bundled_catalog().expect("bundled catalog must parse");
-        let mut slugs: Vec<&str> = projects.iter().map(|project| project.slug.as_str()).collect();
+        let mut slugs: Vec<&str> = projects\n            .iter()\n            .map(|project| project.slug.as_str())\n            .collect();
         slugs.sort_unstable();
         slugs.dedup();
 
@@ -98,7 +98,7 @@ mod tests {
         assert!(!projects.is_empty());
         assert!(projects\n            .iter()\n            .all(|project| project.repository_url.starts_with("https://github.com/")));
         assert!(projects.iter().all(|project| {
-            project.website_url.as_deref().is_none_or(|url| url.starts_with("https://"))
+            project\n                .website_url\n                .as_deref()\n                .is_none_or(|url| url.starts_with("https://"))
         }));
     }
 
