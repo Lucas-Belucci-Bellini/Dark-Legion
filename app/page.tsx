@@ -71,8 +71,8 @@ export default function HomePage() {
           : catalogSource === "bundled-json-degraded"
             ? "PostgreSQL indisponível — JSON de contingência"
             : catalogSource === "unknown"
-            ? "API Rust (fonte não identificada)"
-            : "catálogo local (API indisponível)";
+              ? "API Rust (fonte não identificada)"
+              : "catálogo local (API indisponível)";
 
   function clearFilters() {
     setQuery("");
