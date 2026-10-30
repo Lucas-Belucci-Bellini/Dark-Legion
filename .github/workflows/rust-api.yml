@@ -8,6 +8,8 @@ on:
       - "Cargo.toml"
       - "src/**"
       - "vercel.json"
+      - "src/**"
+      - "vercel.json"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
   pull_request:
@@ -15,6 +17,8 @@ on:
       - "backend/**"
       - "api/**"
       - "Cargo.toml"
+      - "src/**"
+      - "vercel.json"
       - "data/public-projects.json"
       - ".github/workflows/rust-api.yml"
   workflow_dispatch:
