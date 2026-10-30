@@ -22,6 +22,14 @@ type CatalogResponse = {
   };
 };
 
+export type CatalogSource = "postgresql" | "bundled-json" | "unknown";
+
+export type PublicCatalog = {
+  projects: Project[];
+  source: CatalogSource;
+  count: number;
+};
+
 function isSafeHttpsUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
@@ -68,7 +76,7 @@ function toProject(item: ApiProject): Project {
   };
 }
 
-export async function fetchPublicProjects(): Promise<Project[]> {
+export async function fetchPublicCatalog(): Promise<PublicCatalog> {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_DARK_LEGION_API_URL?.trim();
   const endpoint = configuredBaseUrl
     ? new URL("/api/catalog", configuredBaseUrl)
@@ -98,10 +106,33 @@ export async function fetchPublicProjects(): Promise<Project[]> {
     throw new Error("A API retornou um catálogo em formato inesperado.");
   }
 
-  const data = (payload as CatalogResponse).data;
-  if (!Array.isArray(data) || !data.every(isApiProject)) {
+  const catalog = payload as CatalogResponse;
+  if (!Array.isArray(catalog.data) || !catalog.data.every(isApiProject)) {
     throw new Error("A API retornou um catálogo em formato inesperado.");
   }
 
-  return data.map(toProject);
+  const projects = catalog.data.map(toProject);
+  const reportedCount = catalog.meta?.count;
+  if (
+    typeof reportedCount === "number" &&
+    (!Number.isInteger(reportedCount) || reportedCount !== projects.length)
+  ) {
+    throw new Error("A API retornou uma contagem de projetos inconsistente.");
+  }
+
+  const source: CatalogSource =
+    catalog.meta?.source === "postgresql" || catalog.meta?.source === "bundled-json"
+      ? catalog.meta.source
+      : "unknown";
+
+  return {
+    projects,
+    source,
+    count: projects.length,
+  };
+}
+
+export async function fetchPublicProjects(): Promise<Project[]> {
+  const catalog = await fetchPublicCatalog();
+  return catalog.projects;
 }
