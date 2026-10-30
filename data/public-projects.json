@@ -96,18 +96,6 @@
     "marketing_priority": 75
   },
   {
-    "slug": "nexora",
-    "name": "NEXORA",
-    "category": "Web & SaaS",
-    "category_label": "Web",
-    "description": "Descrição pública não informada.",
-    "repository_url": "https://github.com/Lucas-Belucci-Bellini/NEXORA",
-    "website_url": "https://web-2qfw.vercel.app",
-    "status": "Ativo",
-    "featured": false,
-    "marketing_priority": 75
-  },
-  {
     "slug": "portifolio-baluarte-lucas-belucci-bellini",
     "name": "Portifolio-Baluarte-Lucas-Belucci-Bellini-",
     "category": "Web & SaaS",
