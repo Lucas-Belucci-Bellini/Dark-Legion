@@ -1,0 +1,8 @@
+c:\Users\SpartanGamerBR\Workspace Github\Dark-Legion\target\debug\deps\icu_normalizer-a2113bcc70a43421.d: C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\lib.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\properties.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\provider.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\uts46.rs
+
+c:\Users\SpartanGamerBR\Workspace Github\Dark-Legion\target\debug\deps\libicu_normalizer-a2113bcc70a43421.rmeta: C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\lib.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\properties.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\provider.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\uts46.rs
+
+C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\lib.rs:
+C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\properties.rs:
+C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\provider.rs:
+C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\icu_normalizer-2.4.0\src\uts46.rs:
