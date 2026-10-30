@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sqlx::{postgres::PgPoolOptions, FromRow};
+use sqlx::{postgres::PgPoolOptions, FromRow, PgPool};
 use std::env;
+use tokio::sync::OnceCell;
 use vercel_runtime::{run, service_fn, Error, Request};
 
 #[derive(Clone, Debug, Deserialize, Serialize, FromRow)]
@@ -27,15 +28,20 @@ async fn load_catalog() -> Result<(Vec<Project>, &'static str), Error> {
         return Ok((bundled_catalog()?, "bundled-json"));
     };
 
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url)
+    static POOL: OnceCell<PgPool> = OnceCell::const_new();
+    let pool = POOL
+        .get_or_try_init(|| async {
+            PgPoolOptions::new()
+                .max_connections(5)
+                .connect(&database_url)
+                .await
+        })
         .await?;
 
     let projects = sqlx::query_as::<_, Project>(
         "SELECT slug, name, category, category_label, description, repository_url, website_url, status, featured, marketing_priority FROM public_projects ORDER BY marketing_priority DESC, name ASC",
     )
-    .fetch_all(&pool)
+    .fetch_all(pool)
     .await?;
 
     Ok((projects, "postgresql"))
