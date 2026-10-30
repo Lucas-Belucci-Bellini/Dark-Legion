@@ -1,23 +1,21 @@
 # Scheduled public catalog analysis
 
-Dark Legion owns both scheduled workflows:
-- .github/workflows/catalog-analysis-afternoon.yml: daily at 14:00 BRT (17:00 UTC).
-- .github/workflows/catalog-analysis-midnight.yml: daily at 00:00 BRT (03:00 UTC).
+The two workflows live in this repository:
+- `.github/workflows/catalog-analysis-afternoon.yml`: daily at 14:00 BRT (17:00 UTC).
+- `.github/workflows/catalog-analysis-midnight.yml`: daily at 00:00 BRT (03:00 UTC).
 
-Both run scripts/analyze_catalog.py, validate the public catalog, and generate data/public-projects.sql. The export uses PostgreSQL INSERT ... ON CONFLICT so it can be applied repeatedly without duplicating project rows.
+Both validate `data/public-projects.json`, generate an idempotent PostgreSQL export at `data/public-projects.sql`, and apply it to PostgreSQL when the `DATABASE_URL` repository secret is configured. The generated SQL uses `INSERT ... ON CONFLICT`, so reruns update existing rows rather than duplicating them.
 
-## Current boundary
+## Live website updates
 
-This phase does not connect to a live PostgreSQL server. The repository currently embeds data/public-projects.json in the Rust API; PostgreSQL/SQLx is not installed in the backend yet. The generated SQL is a versioned database snapshot, not proof that a remote database was updated.
+The Rust API uses SQLx. When its private `DATABASE_URL` environment variable is configured, it reads project records directly from PostgreSQL on each API request. Therefore, once a scheduled Action commits the SQL transaction, the website can show the new data without rebuilding the frontend or restarting the API. The JSON catalog remains a local-development fallback when no database URL is configured.
 
-The workflows use the automatically provided GITHUB_TOKEN only to commit the generated SQL in this repository. No personal access token or custom GitHub token needs to be created. GitHub repository settings must allow Actions to write contents; branch protection may also reject direct pushes.
+## Credentials
 
-A live database integration is a separate step and requires a PostgreSQL instance and its connection string stored as an Actions secret. Never commit that connection string to the repository.
+No manually created GitHub token is required. The workflows use GitHub's automatic `GITHUB_TOKEN` to commit the generated SQL. For the live database, create a PostgreSQL connection string and store it as the repository Actions secret `DATABASE_URL`; also configure the same variable privately in the Rust API hosting service. Never commit the connection string.
 
-## Website refresh
+If `DATABASE_URL` is absent in Actions, the run still validates and commits the SQL snapshot but skips the live database import. If it is absent in the API service, the API uses bundled JSON and will not show SQL updates until configured.
 
-A changed SQL snapshot is committed to the Dark Legion repository. That commit can trigger the connected deployment pipeline. The current frontend and Rust API still consume the JSON catalog, however, so the live website does not query this SQL export until the SQLx migration is implemented. data/public-projects.json remains the runtime source of truth in this phase.
+## Privacy and validation
 
-## Safety checks
-
-The analyzer rejects duplicate slugs, malformed entries, non-HTTPS repository URLs, non-GitHub repository URLs, non-HTTPS website URLs, and invalid priorities. It only exports the public catalog fields; private repository metadata is not part of the SQL schema.
+Only the public catalog file is exported. The analyzer rejects duplicate slugs, malformed entries, non-HTTPS repository URLs, repository URLs outside github.com, non-HTTPS website URLs, and invalid priorities. No private repository metadata is queried or included.
