@@ -150,7 +150,7 @@
     "category_label": "Ecossistema Baluarte",
     "description": "O Baluarte entrou na reconstrução da V2. Enquanto isso, partes do site e do app podem falhar ou mudar sem aviso. (começo 9 / 8 / 2026) por enquanto esse é o link que tá funcionando sem problemas",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Projeto-Baluarte",
-    "website_url": null,
+    "website_url": "https://projeto-baluarte.vercel.app",
     "status": "Em desenvolvimento",
     "featured": true,
     "marketing_priority": 60
@@ -174,7 +174,7 @@
     "category_label": "Academia",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Academic-Portfolio",
-    "website_url": null,
+    "website_url": "https://academic-portfolio-blush.vercel.app",
     "status": "Acadêmico",
     "featured": false,
     "marketing_priority": 35
@@ -186,7 +186,7 @@
     "category_label": "Web",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Ark-Initiative",
-    "website_url": null,
+    "website_url": "https://ark-initiative.vercel.app",
     "status": "Em desenvolvimento",
     "featured": false,
     "marketing_priority": 35
@@ -198,7 +198,7 @@
     "category_label": "Web",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/DriveTax-Motors",
-    "website_url": null,
+    "website_url": "https://drive-tax-motors.vercel.app",
     "status": "Em desenvolvimento",
     "featured": false,
     "marketing_priority": 35
@@ -210,7 +210,7 @@
     "category_label": "Web",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/FLUX",
-    "website_url": null,
+    "website_url": "https://flux-ten-red.vercel.app",
     "status": "Ativo",
     "featured": false,
     "marketing_priority": 35
@@ -222,7 +222,7 @@
     "category_label": "Games",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Recycle-game",
-    "website_url": null,
+    "website_url": "https://recycle-game-opal.vercel.app",
     "status": "Em desenvolvimento",
     "featured": false,
     "marketing_priority": 35
@@ -714,7 +714,7 @@
     "category_label": "Software & Ferramentas",
     "description": "Descrição pública não informada.",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Lucas-Belucci-Bellini",
-    "website_url": null,
+    "website_url": "https://lucas-belucci-bellini.vercel.app",
     "status": "Ativo",
     "featured": false,
     "marketing_priority": 30
@@ -816,18 +816,6 @@
     "marketing_priority": 30
   },
   {
-    "slug": "save-games-spartan-gamer-br",
-    "name": "Save-Games-Spartan-Gamer-BR-",
-    "category": "Games",
-    "category_label": "Games",
-    "description": "Descrição pública não informada.",
-    "repository_url": "https://github.com/Lucas-Belucci-Bellini/Save-Games-Spartan-Gamer-BR-",
-    "website_url": null,
-    "status": "Ativo",
-    "featured": false,
-    "marketing_priority": 30
-  },
-  {
     "slug": "some-pseudocode-and-exercise-codes",
     "name": "Some-Pseudocode-and-exercise-codes",
     "category": "Education",
@@ -882,7 +870,7 @@
     "category_label": "Experimentos",
     "description": "Repositório para a matéria de Gerenciamento de Projetos",
     "repository_url": "https://github.com/Lucas-Belucci-Bellini/Ativ.-Geren-Proj",
-    "website_url": null,
+    "website_url": "https://frontend-6bpm.vercel.app",
     "status": "Ativo",
     "featured": false,
     "marketing_priority": 25
@@ -934,5 +922,53 @@
     "status": "Ativo",
     "featured": false,
     "marketing_priority": 20
+  },
+  {
+    "slug": "aether",
+    "name": "AETHER",
+    "category": "Engenharia & Sistemas",
+    "category_label": "Rust / Sistemas",
+    "description": "Projeto público sem descrição informada.",
+    "repository_url": "https://github.com/Lucas-Belucci-Bellini/AETHER",
+    "website_url": null,
+    "status": "Público",
+    "featured": false,
+    "marketing_priority": 0
+  },
+  {
+    "slug": "atlas",
+    "name": "ATLAS",
+    "category": "Engenharia & Sistemas",
+    "category_label": "Rust / Sistemas",
+    "description": "ATLAS — framework de UI em Rust",
+    "repository_url": "https://github.com/Lucas-Belucci-Bellini/ATLAS",
+    "website_url": null,
+    "status": "Público",
+    "featured": false,
+    "marketing_priority": 0
+  },
+  {
+    "slug": "dark-legion",
+    "name": "Dark-Legion",
+    "category": "Software & Ferramentas",
+    "category_label": "Projetos e Ferramentas",
+    "description": "Projeto público sem descrição informada.",
+    "repository_url": "https://github.com/Lucas-Belucci-Bellini/Dark-Legion",
+    "website_url": "https://dark-legion-seven.vercel.app",
+    "status": "Público",
+    "featured": false,
+    "marketing_priority": 0
+  },
+  {
+    "slug": "titan",
+    "name": "TITAN",
+    "category": "Engenharia & Sistemas",
+    "category_label": "Rust / Sistemas",
+    "description": "TITAN  - rustback-framework",
+    "repository_url": "https://github.com/Lucas-Belucci-Bellini/TITAN",
+    "website_url": null,
+    "status": "Público",
+    "featured": false,
+    "marketing_priority": 0
   }
 ]
