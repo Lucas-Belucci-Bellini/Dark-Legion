@@ -132,7 +132,6 @@ mod tests {
         }));
     }
 
-
     #[test]
     fn degraded_health_payload_reports_database_fallback() {
         let payload = health_payload(
