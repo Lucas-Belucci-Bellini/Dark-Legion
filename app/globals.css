@@ -62,7 +62,7 @@ h1 span { color: var(--gold); }
 .orbit-label-three { bottom: 70px; right: 0; }
 
 .projects-section { padding: 95px 7.2% 110px; }
-.section-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+.section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
 .section-heading h2, .about-section h2 { margin: 12px 0; font-size: clamp(29px, 4vw, 44px); letter-spacing: -1.8px; line-height: 1.2; }
 .section-heading h2 span { color: var(--gold); }
 .section-copy { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
