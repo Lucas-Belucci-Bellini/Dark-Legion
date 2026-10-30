@@ -94,15 +94,14 @@ export async function fetchPublicProjects(): Promise<Project[]> {
   }
 
   const payload: unknown = await response.json();
-  if (
-    typeof payload !== "object" ||
-    payload === null ||
-    !("data" in payload) ||
-    !Array.isArray((payload as CatalogResponse).data) ||
-    !(payload as CatalogResponse).data.every(isApiProject)
-  ) {
+  if (typeof payload !== "object" || payload === null || !("data" in payload)) {
     throw new Error("A API retornou um catálogo em formato inesperado.");
   }
 
-  return (payload as CatalogResponse).data.map((item) => toProject(item));
+  const data = (payload as CatalogResponse).data;
+  if (!Array.isArray(data) || !data.every(isApiProject)) {
+    throw new Error("A API retornou um catálogo em formato inesperado.");
+  }
+
+  return data.map(toProject);
 }
