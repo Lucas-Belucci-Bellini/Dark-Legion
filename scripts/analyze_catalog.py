@@ -23,6 +23,13 @@ def validate_url(value: object, github: bool = False) -> bool:
         return False
     return parsed.hostname.lower() == "github.com" if github else True
 
+
+def delete_stale_rows_sql(slugs: set[str]) -> str:
+    if not slugs:
+        raise ValueError("Cannot prune the database with an empty public catalog")
+    current_slugs = ", ".join(sql_text(slug) for slug in sorted(slugs))
+    return f"DELETE FROM public_projects WHERE slug NOT IN ({current_slugs});"
+
 def main() -> None:
     projects = json.loads(SOURCE.read_text(encoding="utf-8"))
     if not isinstance(projects, list) or not projects:
@@ -85,6 +92,7 @@ VALUES
 ON CONFLICT (slug) DO UPDATE SET
 {updates},
   updated_at = NOW();
+{delete_stale_rows_sql(seen)}
 COMMIT;
 """
     OUTPUT.write_text(sql, encoding="utf-8")
