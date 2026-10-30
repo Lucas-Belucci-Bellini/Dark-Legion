@@ -19,7 +19,13 @@ As duas Actions consultam a API pública do GitHub para descobrir os repositóri
 7. Aplica o SQL ao PostgreSQL quando `DATABASE_URL` está configurada.
 8. Comita o JSON e o SQL quando houver alterações.
 
-## API de produção na Vercel\n\n- `GET /api/catalog` retorna os projetos e informa a fonte em `meta.source` (`postgresql`, `bundled-json` ou `bundled-json-degraded`).\n- `GET /api/health` retorna `status`, `catalog_source` e `catalog_count`, sem expor credenciais.\n- As duas rotas usam `Cache-Control: no-store` para evitar catálogo antigo no CDN.\n\n## Como o site recebe as mudanças
+## API de produção na Vercel
+
+- `GET /api/catalog` retorna os projetos e informa a fonte em `meta.source` (`postgresql`, `bundled-json` ou `bundled-json-degraded`).
+- `GET /api/health` retorna `status`, `catalog_source` e `catalog_count`, sem expor credenciais.
+- As duas rotas usam `Cache-Control: no-store` para evitar catálogo antigo no CDN.
+
+## Como o site recebe as mudanças
 
 - Com PostgreSQL conectado e populado, a Function Rust consulta o banco e o frontend usa `cache: no-store`; as mudanças aparecem sem rebuild do frontend.
 - Sem `DATABASE_URL`, o JSON versionado é a fonte normal da Function Rust. O commit do JSON dispara um novo deploy da Vercel, que incorpora o catálogo atualizado.
