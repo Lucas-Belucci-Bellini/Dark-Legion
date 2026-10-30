@@ -60,7 +60,15 @@ export default function HomePage() {
       );
   }, [category, featuredOnly, projectCatalog, query, sortMode]);
 
-  const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;\n  const catalogSourceLabel =\n    catalogSource === "postgresql"\n      ? "PostgreSQL conectado"\n      : catalogSource === "bundled-json"\n        ? "JSON versionado (fallback)"\n        : catalogSource === "unknown"\n          ? "API Rust (fonte não identificada)"\n          : "catálogo local (API indisponível)";
+  const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;
+  const catalogSourceLabel =
+    catalogSource === "postgresql"
+      ? "PostgreSQL conectado"
+      : catalogSource === "bundled-json"
+        ? "JSON versionado (fallback)"
+        : catalogSource === "unknown"
+          ? "API Rust (fonte não identificada)"
+          : "catálogo local (API indisponível)";
 
   function clearFilters() {
     setQuery("");
