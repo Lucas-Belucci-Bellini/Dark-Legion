@@ -21,8 +21,9 @@ As duas Actions consultam a API pública do GitHub para descobrir os repositóri
 
 ## API de produção na Vercel\n\n- `GET /api/catalog` retorna os projetos e informa a fonte em `meta.source` (`postgresql` ou `bundled-json`).\n- `GET /api/health` retorna `status`, `catalog_source` e `catalog_count`, sem expor credenciais.\n- As duas rotas usam `Cache-Control: no-store` para evitar catálogo antigo no CDN.\n\n## Como o site recebe as mudanças
 
-- Com PostgreSQL conectado, a Function Rust consulta o banco e o frontend usa `cache: no-store`; as mudanças aparecem sem rebuild do frontend.
-- Sem `DATABASE_URL`, o JSON versionado é o fallback da Function Rust. O commit do JSON dispara um novo deploy da Vercel, que incorpora o catálogo atualizado.
+- Com PostgreSQL conectado e populado, a Function Rust consulta o banco e o frontend usa `cache: no-store`; as mudanças aparecem sem rebuild do frontend.
+- Sem `DATABASE_URL`, o JSON versionado é a fonte normal da Function Rust. O commit do JSON dispara um novo deploy da Vercel, que incorpora o catálogo atualizado.
+- Se PostgreSQL estiver indisponível, falhar na consulta ou ainda estiver vazio, a API serve o JSON versionado como contingência e marca a resposta/health check como `degraded`. Isso mantém o catálogo visível sem esconder que o banco precisa de atenção.
 - Se a API pública do GitHub estiver indisponível ou atingir rate limit, a descoberta falha sem sobrescrever o catálogo; a execução não publica dados parciais.
 
 ## Configuração
