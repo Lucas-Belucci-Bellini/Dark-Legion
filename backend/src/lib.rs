@@ -128,7 +128,11 @@ async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "ok",
         service: "dark-legion-api",
-        catalog_source: if state.database.is_some() { "postgresql" } else { "bundled-json" },
+        catalog_source: if state.database.is_some() {
+            "postgresql"
+        } else {
+            "bundled-json"
+        },
     })
 }
 
@@ -148,7 +152,12 @@ async fn list_projects(
     })?;
 
     let query = filters.q.as_deref().unwrap_or("").trim().to_lowercase();
-    let category = filters.category.as_deref().unwrap_or("").trim().to_lowercase();
+    let category = filters
+        .category
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .to_lowercase();
 
     projects.retain(|project| {
         let matches_query = query.is_empty()
@@ -231,8 +240,13 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let projects: Vec<Project> = serde_json::from_slice(&body).unwrap();
         assert!(projects.len() >= 70);
-        assert!(projects.iter().all(|project| project.repository_url.starts_with("https://github.com/")));
-        assert!(projects.iter().filter_map(|project| project.website_url.as_ref()).all(|url| url.starts_with("https://")));
+        assert!(projects
+            .iter()
+            .all(|project| project.repository_url.starts_with("https://github.com/")));
+        assert!(projects
+            .iter()
+            .filter_map(|project| project.website_url.as_ref())
+            .all(|url| url.starts_with("https://")));
     }
 
     #[tokio::test]
@@ -276,7 +290,10 @@ mod tests {
     #[tokio::test]
     async fn catalog_contains_unique_slugs() {
         let projects = public_projects();
-        let mut slugs: Vec<&str> = projects.iter().map(|project| project.slug.as_str()).collect();
+        let mut slugs: Vec<&str> = projects
+            .iter()
+            .map(|project| project.slug.as_str())
+            .collect();
         slugs.sort_unstable();
         slugs.dedup();
         assert_eq!(slugs.len(), projects.len());
