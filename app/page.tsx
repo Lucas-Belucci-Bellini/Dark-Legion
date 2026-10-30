@@ -13,7 +13,7 @@ export default function HomePage() {
   const [sortMode, setSortMode] = useState<SortMode>("priority");
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [projectCatalog, setProjectCatalog] = useState<Project[]>(fallbackProjects);
-  const [catalogSource, setCatalogSource] = useState<CatalogSource | "local-fallback">("local-fallback");
+  const [catalogSource, setCatalogSource] = useState<CatalogSource | "local-fallback" | "loading">("loading");
 
   useEffect(() => {
     let active = true;
@@ -62,13 +62,15 @@ export default function HomePage() {
 
   const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;
   const catalogSourceLabel =
-    catalogSource === "postgresql"
-      ? "PostgreSQL conectado"
-      : catalogSource === "bundled-json"
-        ? "JSON versionado (fallback)"
-        : catalogSource === "unknown"
-          ? "API Rust (fonte não identificada)"
-          : "catálogo local (API indisponível)";
+    catalogSource === "loading"
+      ? "consultando API..."
+      : catalogSource === "postgresql"
+        ? "PostgreSQL conectado"
+        : catalogSource === "bundled-json"
+          ? "JSON versionado (fallback)"
+          : catalogSource === "unknown"
+            ? "API Rust (fonte não identificada)"
+            : "catálogo local (API indisponível)";
 
   function clearFilters() {
     setQuery("");
