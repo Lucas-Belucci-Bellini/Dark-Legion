@@ -15,7 +15,9 @@ async fn postgres_catalog_and_health_endpoint_use_the_applied_public_snapshot() 
     assert_eq!(source, "postgresql");
     assert!(!projects.is_empty());
     assert!(
-        projects.iter().all(|project| project.slug != "stale-ci-sentinel"),
+        projects
+            .iter()
+            .all(|project| project.slug != "stale-ci-sentinel"),
         "the SQL snapshot must prune rows that are no longer in the public catalog"
     );
 
@@ -25,5 +27,8 @@ async fn postgres_catalog_and_health_endpoint_use_the_applied_public_snapshot() 
 
     assert_eq!(health["status"], "ok");
     assert_eq!(health["catalog_source"], "postgresql");
-    assert_eq!(health["catalog_count"].as_u64(), Some(projects.len() as u64));
+    assert_eq!(
+        health["catalog_count"].as_u64(),
+        Some(projects.len() as u64)
+    );
 }
