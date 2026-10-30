@@ -1,21 +1,42 @@
-# Scheduled public catalog analysis
+# Análise automática do catálogo público
 
-The two workflows live in this repository:
-- `.github/workflows/catalog-analysis-afternoon.yml`: daily at 14:00 BRT (17:00 UTC).
-- `.github/workflows/catalog-analysis-midnight.yml`: daily at 00:00 BRT (03:00 UTC).
+As duas Actions consultam a API pública do GitHub para descobrir os repositórios públicos pertencentes a `Lucas-Belucci-Bellini`. A consulta usa a API pública sem token e não enumera nem exporta repositórios privados.
 
-Both validate `data/public-projects.json`, generate an idempotent PostgreSQL export at `data/public-projects.sql`, and apply it to PostgreSQL when the `DATABASE_URL` repository secret is configured. The generated SQL uses `INSERT ... ON CONFLICT`, so reruns update existing rows rather than duplicating them.
+## Execução
 
-## Live website updates
+- 14:00 BRT — cron UTC `0 17 * * *`.
+- 00:00 BRT — cron UTC `0 3 * * *`.
+- Também podem ser iniciadas manualmente por `workflow_dispatch`.
 
-The Rust API uses SQLx. When its private `DATABASE_URL` environment variable is configured, it reads project records directly from PostgreSQL on each API request. Therefore, once a scheduled Action commits the SQL transaction, the website can show the new data without rebuilding the frontend or restarting the API. The JSON catalog remains a local-development fallback when no database URL is configured.
+## Pipeline de cada execução
 
-## Credentials
+1. Consulta todas as páginas de repositórios públicos do perfil.
+2. Confirma que cada item pertence ao proprietário esperado e que `private=false`.
+3. Remove do catálogo registros próprios que deixaram de estar públicos.
+4. Adiciona novos repositórios públicos sem substituir descrições, categorias, destaques ou prioridades já revisados manualmente.
+5. Aproveita o campo `homepage` do GitHub somente quando é uma URL HTTPS.
+6. Valida o catálogo e gera `data/public-projects.sql`.
+7. Aplica o SQL ao PostgreSQL quando `DATABASE_URL` está configurada.
+8. Comita o JSON e o SQL quando houver alterações.
 
-No manually created GitHub token is required. The workflows use GitHub's automatic `GITHUB_TOKEN` to commit the generated SQL. For the live database, create a PostgreSQL connection string and store it as the repository Actions secret `DATABASE_URL`; also configure the same variable privately in the Rust API hosting service. Never commit the connection string.
+## Como o site recebe as mudanças
 
-If `DATABASE_URL` is absent in Actions, the run still validates and commits the SQL snapshot but skips the live database import. If it is absent in the API service, the API uses bundled JSON and will not show SQL updates until configured.
+- Com PostgreSQL conectado, a Function Rust consulta o banco e o frontend usa `cache: no-store`; as mudanças aparecem sem rebuild do frontend.
+- Sem `DATABASE_URL`, o JSON versionado é o fallback da Function Rust. O commit do JSON dispara um novo deploy da Vercel, que incorpora o catálogo atualizado.
+- Se a API pública do GitHub estiver indisponível ou atingir rate limit, a descoberta falha sem sobrescrever o catálogo; a execução não publica dados parciais.
 
-## Privacy and validation
+## Configuração
 
-Only the public catalog file is exported. The analyzer rejects duplicate slugs, malformed entries, non-HTTPS repository URLs, repository URLs outside github.com, non-HTTPS website URLs, and invalid priorities. No private repository metadata is queried or included.
+Cadastrar o mesmo segredo privado `DATABASE_URL`:
+- no projeto Vercel `dark-legion`;
+- nos GitHub Actions Secrets do repositório.
+
+O valor nunca deve ser enviado em Issues, commits ou mensagens. Nenhum Personal Access Token é necessário para a leitura dos repositórios públicos.
+
+## Limites de segurança
+
+- A fonte de descoberta é o endpoint público `/users/{username}/repos`.
+- Repositórios privados, de outros proprietários e metadados privados não são adicionados.
+- Registros próprios removidos ou tornados privados deixam de constar no catálogo na próxima execução bem-sucedida.
+- Dados editoriais já curados manualmente são preservados.
+- As APIs de catálogo permanecem somente leitura; as atualizações são feitas pelas Actions.
