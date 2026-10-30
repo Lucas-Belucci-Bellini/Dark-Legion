@@ -1,22 +1,33 @@
 # Dark Legion API
 
-API pública somente leitura em Rust, Axum e Tokio. O catálogo versionado inclui apenas repositórios públicos; URLs de sites só são expostas quando estão marcadas como verificadas na fonte central.
+API pública somente leitura em Rust, Axum, Tokio e SQLx. Quando `DATABASE_URL` está configurada, PostgreSQL é a fonte de verdade e cada requisição lê os dados atuais do banco. Sem essa variável, a API usa o JSON público embutido como fallback de desenvolvimento.
 
-## Executar
+## Executar com JSON (sem banco)
 
 ```bash
 cd backend
 cargo run
 ```
 
-Por padrão, escuta em `0.0.0.0:8080`. Para desenvolvimento local, defina `HOST=127.0.0.1`. Configure `FRONTEND_ORIGIN` com a origem exata do frontend.
+## Executar com PostgreSQL
+
+Crie um banco PostgreSQL e configure:
+
+```bash
+DATABASE_URL=postgres://usuario:senha@localhost:5432/dark_legion
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+Depois execute `cargo run`. As migrations de `backend/migrations` são aplicadas automaticamente na inicialização. A API lê o catálogo diretamente do PostgreSQL, sem precisar reconstruir o frontend quando os dados mudam.
 
 ## Endpoints
 
-- `GET /health`
+- `GET /health` — informa `catalog_source` (`postgresql` ou `bundled-json`).
 - `GET /api/v1/projects`
 - `GET /api/v1/projects/{slug}`
-- Filtros opcionais: `?q=nexora`, `?category=Web%20%26%20SaaS`, `?featured=true`
+- Filtros: `?q=nexora`, `?category=Web%20%26%20SaaS`, `?featured=true`.
+
+A API só expõe rotas GET e OPTIONS. O banco recebe atualizações pelo SQL idempotente gerado pelas Actions, não por endpoints públicos de escrita.
 
 ## Qualidade
 
@@ -26,4 +37,4 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-targets
 ```
 
-O catálogo é embutido no binário por `include_str!`; não há banco de dados nem escrita de dados nesta versão. Atualizações do catálogo devem passar por revisão de código e manter o filtro de repositórios públicos.
+Nunca coloque `DATABASE_URL` no repositório. Em produção, configure-a como variável de ambiente privada do serviço Rust e como secret `DATABASE_URL` no repositório GitHub para as Actions.
