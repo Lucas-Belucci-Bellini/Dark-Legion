@@ -15,7 +15,7 @@ As duas Actions consultam a API pública do GitHub para descobrir os repositóri
 3. Remove do catálogo registros próprios que deixaram de estar públicos.
 4. Adiciona novos repositórios públicos sem substituir descrições, categorias, destaques ou prioridades já revisados manualmente.
 5. Aproveita o campo `homepage` do GitHub somente quando é uma URL HTTPS.
-6. Valida o catálogo e gera `data/public-projects.sql`.
+6. Valida o catálogo e gera `data/public-projects.sql`, incluindo a remoção transacional de linhas que não constam mais no catálogo público.
 7. Aplica o SQL ao PostgreSQL quando `DATABASE_URL` está configurada.
 8. Comita o JSON e o SQL quando houver alterações.
 
@@ -37,6 +37,6 @@ O valor nunca deve ser enviado em Issues, commits ou mensagens. Nenhum Personal 
 
 - A fonte de descoberta é o endpoint público `/users/{username}/repos`.
 - Repositórios privados, de outros proprietários e metadados privados não são adicionados.
-- Registros próprios removidos ou tornados privados deixam de constar no catálogo na próxima execução bem-sucedida.
+- Registros próprios removidos ou tornados privados deixam de constar no JSON e são excluídos do PostgreSQL na próxima execução bem-sucedida.
 - Dados editoriais já curados manualmente são preservados.
 - As APIs de catálogo permanecem somente leitura; as atualizações são feitas pelas Actions.
