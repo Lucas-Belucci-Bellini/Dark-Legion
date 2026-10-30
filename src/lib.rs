@@ -102,7 +102,12 @@ pub async fn catalog_health() -> Result<Value, Error> {
         _ => ("degraded", "unavailable-or-empty"),
     };
 
-    Ok(health_payload(status, source, database_status, projects.len()))
+    Ok(health_payload(
+        status,
+        source,
+        database_status,
+        projects.len(),
+    ))
 }
 
 #[cfg(test)]
