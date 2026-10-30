@@ -18,11 +18,13 @@ type CatalogResponse = {
   meta?: {
     count?: number;
     source?: string;
+    status?: string;
+    database_status?: string;
     service?: string;
   };
 };
 
-export type CatalogSource = "postgresql" | "bundled-json" | "unknown";
+export type CatalogSource = "postgresql" | "bundled-json" | "bundled-json-degraded" | "unknown";
 
 export type PublicCatalog = {
   projects: Project[];
@@ -121,7 +123,9 @@ export async function fetchPublicCatalog(): Promise<PublicCatalog> {
   }
 
   const source: CatalogSource =
-    catalog.meta?.source === "postgresql" || catalog.meta?.source === "bundled-json"
+    catalog.meta?.source === "postgresql" ||
+    catalog.meta?.source === "bundled-json" ||
+    catalog.meta?.source === "bundled-json-degraded"
       ? catalog.meta.source
       : "unknown";
 

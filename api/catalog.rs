@@ -11,6 +11,16 @@ async fn handler(_request: Request) -> Result<Value, Error> {
         "meta": {
             "count": count,
             "source": source,
+            "status": if source == "bundled-json-degraded" {
+                "degraded"
+            } else {
+                "ok"
+            },
+            "database_status": match source {
+                "postgresql" => "connected",
+                "bundled-json" => "not-configured",
+                _ => "unavailable-or-empty",
+            },
             "service": "dark-legion-rust-api"
         }
     }))

@@ -67,10 +67,12 @@ export default function HomePage() {
       : catalogSource === "postgresql"
         ? "PostgreSQL conectado"
         : catalogSource === "bundled-json"
-          ? "JSON versionado (fallback)"
-          : catalogSource === "unknown"
-            ? "API Rust (fonte não identificada)"
-            : "catálogo local (API indisponível)";
+          ? "JSON versionado (PostgreSQL não configurado)"
+          : catalogSource === "bundled-json-degraded"
+            ? "PostgreSQL indisponível — JSON de contingência"
+            : catalogSource === "unknown"
+              ? "API Rust (fonte não identificada)"
+              : "catálogo local (API indisponível)";
 
   function clearFilters() {
     setQuery("");
