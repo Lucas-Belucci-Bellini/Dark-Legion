@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Test discovery rules
+        run: python -m unittest discover -s scripts -p 'test_*.py'
       - name: Discover public repositories owned by the profile
         run: python scripts/discover_public_repositories.py
       - name: Validate public catalog and generate SQL
@@ -39,6 +41,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Public catalog and SQL snapshot are already up to date."
           else
-            git commit -m "chore(data): refresh afternoon public catalog SQL"
+            git commit -m "chore(data): refresh afternoon public catalog"
             git push origin HEAD:main
           fi
