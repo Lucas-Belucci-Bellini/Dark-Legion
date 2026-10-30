@@ -51,38 +51,58 @@ async fn database_pool() -> Result<Option<&'static PgPool>, Error> {
 }
 
 pub async fn load_catalog() -> Result<(Vec<Project>, &'static str), Error> {
-    let Some(pool) = database_pool().await? else {
-        return Ok((bundled_catalog()?, "bundled-json"));
+    let pool = match database_pool().await {
+        Ok(Some(pool)) => pool,
+        Ok(None) => return Ok((bundled_catalog()?, "bundled-json")),
+        Err(_) => {
+            eprintln!("PostgreSQL connection unavailable; serving bundled catalog.");
+            return Ok((bundled_catalog()?, "bundled-json-degraded"));
+        }
     };
 
-    let projects = sqlx::query_as::<_, Project>(
+    let query = sqlx::query_as::<_, Project>(
         "SELECT slug, name, category, category_label, description, repository_url, website_url, status, featured, marketing_priority FROM public_projects ORDER BY marketing_priority DESC, name ASC",
     )
     .fetch_all(pool)
-    .await?;
+    .await;
 
-    Ok((projects, "postgresql"))
+    match query {
+        Ok(projects) if !projects.is_empty() => Ok((projects, "postgresql")),
+        Ok(_) => {
+            eprintln!("PostgreSQL catalog is empty; serving bundled catalog.");
+            Ok((bundled_catalog()?, "bundled-json-degraded"))
+        }
+        Err(_) => {
+            eprintln!("PostgreSQL catalog query failed; serving bundled catalog.");
+            Ok((bundled_catalog()?, "bundled-json-degraded"))
+        }
+    }
 }
 
-fn health_payload(source: &'static str, count: usize) -> Value {
+fn health_payload(
+    status: &'static str,
+    source: &'static str,
+    database_status: &'static str,
+    count: usize,
+) -> Value {
     json!({
-        "status": "ok",
+        "status": status,
         "service": "dark-legion-rust-api",
         "catalog_source": source,
+        "database_status": database_status,
         "catalog_count": count
     })
 }
 
 pub async fn catalog_health() -> Result<Value, Error> {
-    let Some(pool) = database_pool().await? else {
-        return Ok(health_payload("bundled-json", bundled_catalog()?.len()));
+    let (projects, source) = load_catalog().await?;
+    let (status, database_status) = match source {
+        "postgresql" => ("ok", "connected"),
+        "bundled-json" => ("ok", "not-configured"),
+        _ => ("degraded", "unavailable-or-empty"),
     };
 
-    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM public_projects")
-        .fetch_one(pool)
-        .await?;
-
-    Ok(health_payload("postgresql", count as usize))
+    Ok(health_payload(status, source, database_status, projects.len()))
 }
 
 #[cfg(test)]
@@ -112,11 +132,27 @@ mod tests {
         }));
     }
 
+
+    #[test]
+    fn degraded_health_payload_reports_database_fallback() {
+        let payload = health_payload(
+            "degraded",
+            "bundled-json-degraded",
+            "unavailable-or-empty",
+            78,
+        );
+        assert_eq!(payload["status"], "degraded");
+        assert_eq!(payload["catalog_source"], "bundled-json-degraded");
+        assert_eq!(payload["database_status"], "unavailable-or-empty");
+        assert_eq!(payload["catalog_count"], 78);
+    }
+
     #[test]
     fn health_payload_reports_source_and_catalog_count() {
-        let payload = health_payload("bundled-json", 78);
+        let payload = health_payload("ok", "bundled-json", "not-configured", 78);
         assert_eq!(payload["status"], "ok");
         assert_eq!(payload["catalog_source"], "bundled-json");
+        assert_eq!(payload["database_status"], "not-configured");
         assert_eq!(payload["catalog_count"], 78);
     }
 }
