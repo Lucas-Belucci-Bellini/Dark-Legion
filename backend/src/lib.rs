@@ -301,7 +301,34 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["status"], "ok");
+        assert_eq!(json["service"], "dark-legion-rust-api");
         assert_eq!(json["catalog_source"], "bundled-json");
+        assert!(json["catalog_count"].as_u64().unwrap_or_default() >= 70);
+    }
+
+    #[tokio::test]
+    async fn production_health_alias_matches_local_health_contract() {
+        let response = request("/api/health").await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["catalog_source"], "bundled-json");
+        assert!(json["catalog_count"].as_u64().unwrap_or_default() >= 70);
+    }
+
+    #[tokio::test]
+    async fn catalog_endpoint_matches_vercel_function_contract() {
+        let response = request("/api/catalog").await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let projects = json["data"].as_array().expect("catalog data must be an array");
+
+        assert!(projects.len() >= 70);
+        assert_eq!(json["meta"]["count"].as_u64(), Some(projects.len() as u64));
+        assert_eq!(json["meta"]["source"], "bundled-json");
+        assert_eq!(json["meta"]["service"], "dark-legion-rust-api");
     }
 
     #[tokio::test]
