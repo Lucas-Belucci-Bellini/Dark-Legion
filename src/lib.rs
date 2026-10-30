@@ -96,7 +96,7 @@ mod tests {
 
         assert_eq!(slugs.len(), projects.len());
         assert!(!projects.is_empty());
-        assert!(projects.iter().all(|project| project.repository_url.starts_with("https://github.com/")));
+        assert!(projects\n            .iter()\n            .all(|project| project.repository_url.starts_with("https://github.com/")));
         assert!(projects.iter().all(|project| {
             project.website_url.as_deref().is_none_or(|url| url.starts_with("https://"))
         }));
