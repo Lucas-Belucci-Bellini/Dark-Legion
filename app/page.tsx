@@ -17,8 +17,6 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true;
-    if (!process.env.NEXT_PUBLIC_DARK_LEGION_API_URL) return;
-
     fetchPublicProjects()
       .then((remoteProjects) => {
         if (!active || remoteProjects.length === 0) return;
