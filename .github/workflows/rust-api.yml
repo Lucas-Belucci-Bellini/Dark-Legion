@@ -6,18 +6,22 @@ on:
       - "backend/**"
       - "api/**"
       - "src/**"
+      - "tests/**"
       - "Cargo.toml"
       - "vercel.json"
       - "data/public-projects.json"
+      - "data/public-projects.sql"
       - ".github/workflows/rust-api.yml"
   pull_request:
     paths:
       - "backend/**"
       - "api/**"
       - "src/**"
+      - "tests/**"
       - "Cargo.toml"
       - "vercel.json"
       - "data/public-projects.json"
+      - "data/public-projects.sql"
       - ".github/workflows/rust-api.yml"
   workflow_dispatch:
 
@@ -58,3 +62,50 @@ jobs:
       - name: Test Vercel Rust Functions
         working-directory: .
         run: cargo test --all-targets
+
+  postgres-integration:
+    name: PostgreSQL catalog integration
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/dark_legion_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dark_legion_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d dark_legion_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Apply generated public catalog SQL
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f data/public-projects.sql
+      - name: Insert a stale row to verify pruning
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO public_projects (
+            slug, name, category, category_label, description,
+            repository_url, website_url, status, featured, marketing_priority
+          ) VALUES (
+            'stale-ci-sentinel', 'Stale CI sentinel', 'Test', 'Test',
+            'This row must be removed by the next catalog snapshot.',
+            'https://github.com/Lucas-Belucci-Bellini/stale-ci-sentinel',
+            NULL, 'Público', FALSE, 0
+          );
+          SQL
+      - name: Reapply snapshot and prune stale rows
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f data/public-projects.sql
+      - name: Verify Rust reads PostgreSQL and reports health
+        run: cargo test --test postgres_catalog

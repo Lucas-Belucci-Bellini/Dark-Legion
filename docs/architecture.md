@@ -19,8 +19,9 @@ As respostas dessas rotas não são armazenadas em cache, para que alterações 
 
 O servidor Axum em `backend/` permanece disponível para desenvolvimento local:
 
-- `GET /health`
-- `GET /api/v1/projects?q=&category=&featured=`
+- `GET /health` and `GET /api/health` — same health contract as production.
+- `GET /api/catalog` — same `{ data, meta }` response consumed by the frontend.
+- `GET /api/v1/projects?q=&category=&featured=` — filtered local API endpoint.
 - `GET /api/v1/projects/{slug}`
 
 Execute com `cd backend && cargo run`. Sem banco, usa o JSON versionado. Com `DATABASE_URL`, usa PostgreSQL.
