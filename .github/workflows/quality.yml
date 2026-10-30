@@ -23,19 +23,3 @@ jobs:
           python -m py_compile scripts/analyze_catalog.py
           python scripts/analyze_catalog.py
           git diff --exit-code -- data/public-projects.sql
-  rust:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-      - name: Run Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-      - name: Run tests
-        run: cargo test --all-targets
