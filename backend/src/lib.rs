@@ -35,6 +35,20 @@ struct HealthResponse {
     status: &'static str,
     service: &'static str,
     catalog_source: &'static str,
+    catalog_count: usize,
+}
+
+#[derive(Serialize)]
+struct CatalogMeta {
+    count: usize,
+    source: &'static str,
+    service: &'static str,
+}
+
+#[derive(Serialize)]
+struct CatalogResponse {
+    data: Vec<Project>,
+    meta: CatalogMeta,
 }
 
 #[derive(Serialize)]
@@ -68,6 +82,8 @@ fn build_router(state: AppState) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/api/health", get(health))
+        .route("/api/catalog", get(catalog))
         .route("/api/v1/projects", get(list_projects))
         .route("/api/v1/projects/{slug}", get(get_project))
         .with_state(state)
@@ -105,6 +121,26 @@ impl AppState {
         }
     }
 
+    fn catalog_source(&self) -> &'static str {
+        if self.database.is_some() {
+            "postgresql"
+        } else {
+            "bundled-json"
+        }
+    }
+
+    async fn catalog_count(&self) -> Result<usize, sqlx::Error> {
+        match &self.database {
+            Some(pool) => {
+                let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM public_projects")
+                    .fetch_one(pool)
+                    .await?;
+                Ok(usize::try_from(count).unwrap_or_default())
+            }
+            None => Ok(self.fallback_projects.len()),
+        }
+    }
+
     async fn find_project(&self, slug: &str) -> Result<Option<Project>, sqlx::Error> {
         match &self.database {
             Some(pool) => {
@@ -124,16 +160,51 @@ impl AppState {
     }
 }
 
-async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
-    Json(HealthResponse {
+async fn health(
+    State(state): State<AppState>,
+) -> Result<Json<HealthResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let catalog_count = state.catalog_count().await.map_err(|error| {
+        tracing::error!(%error, "Could not count public projects for health check");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: "catalog_unavailable",
+                message: "O catálogo de projetos está temporariamente indisponível.",
+            }),
+        )
+    })?;
+
+    Ok(Json(HealthResponse {
         status: "ok",
-        service: "dark-legion-api",
-        catalog_source: if state.database.is_some() {
-            "postgresql"
-        } else {
-            "bundled-json"
+        service: "dark-legion-rust-api",
+        catalog_source: state.catalog_source(),
+        catalog_count,
+    }))
+}
+
+async fn catalog(
+    State(state): State<AppState>,
+) -> Result<Json<CatalogResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let projects = state.all_projects().await.map_err(|error| {
+        tracing::error!(%error, "Could not load public catalog");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: "catalog_unavailable",
+                message: "O catálogo de projetos está temporariamente indisponível.",
+            }),
+        )
+    })?;
+
+    let count = projects.len();
+    Ok(Json(CatalogResponse {
+        data: projects,
+        meta: CatalogMeta {
+            count,
+            source: state.catalog_source(),
+            service: "dark-legion-rust-api",
         },
-    })
+    }))
 }
 
 async fn list_projects(
