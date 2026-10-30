@@ -13,6 +13,15 @@ type ApiProject = {
   marketing_priority: number;
 };
 
+type CatalogResponse = {
+  data: unknown;
+  meta?: {
+    count?: number;
+    source?: string;
+    service?: string;
+  };
+};
+
 function isSafeHttpsUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
@@ -61,24 +70,19 @@ function toProject(item: ApiProject): Project {
 
 export async function fetchPublicProjects(): Promise<Project[]> {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_DARK_LEGION_API_URL?.trim();
-  if (!configuredBaseUrl) return [];
-
-  let baseUrl: URL;
-  try {
-    baseUrl = new URL(configuredBaseUrl);
-  } catch {
-    throw new Error("NEXT_PUBLIC_DARK_LEGION_API_URL não é uma URL válida.");
-  }
+  const endpoint = configuredBaseUrl
+    ? new URL("/api/catalog", configuredBaseUrl)
+    : new URL("/api/catalog", window.location.origin);
 
   if (
-    baseUrl.protocol !== "https:" &&
-    baseUrl.hostname !== "localhost" &&
-    baseUrl.hostname !== "127.0.0.1"
+    endpoint.protocol !== "https:" &&
+    endpoint.hostname !== "localhost" &&
+    endpoint.hostname !== "127.0.0.1"
   ) {
     throw new Error("A API pública deve usar HTTPS.");
   }
 
-  const response = await fetch(new URL("/api/v1/projects", baseUrl), {
+  const response = await fetch(endpoint, {
     method: "GET",
     headers: { Accept: "application/json" },
     cache: "no-store",
@@ -90,9 +94,15 @@ export async function fetchPublicProjects(): Promise<Project[]> {
   }
 
   const payload: unknown = await response.json();
-  if (!Array.isArray(payload) || !payload.every(isApiProject)) {
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("data" in payload) ||
+    !Array.isArray((payload as CatalogResponse).data) ||
+    !(payload as CatalogResponse).data.every(isApiProject)
+  ) {
     throw new Error("A API retornou um catálogo em formato inesperado.");
   }
 
-  return payload.map(toProject);
+  return (payload as CatalogResponse).data.map((item) => toProject(item));
 }
