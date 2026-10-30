@@ -19,7 +19,7 @@ export default function HomePage() {
     let active = true;
     fetchPublicProjects()
       .then((remoteProjects) => {
-        if (!active || remoteProjects.length === 0) return;
+        if (!active) return;
         setProjectCatalog(remoteProjects);
         setCatalogSource("api");
       })

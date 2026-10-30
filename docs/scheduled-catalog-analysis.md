@@ -19,7 +19,7 @@ As duas Actions consultam a API pública do GitHub para descobrir os repositóri
 7. Aplica o SQL ao PostgreSQL quando `DATABASE_URL` está configurada.
 8. Comita o JSON e o SQL quando houver alterações.
 
-## Como o site recebe as mudanças
+## API de produção na Vercel\n\n- `GET /api/catalog` retorna os projetos e informa a fonte em `meta.source` (`postgresql` ou `bundled-json`).\n- `GET /api/health` retorna `status`, `catalog_source` e `catalog_count`, sem expor credenciais.\n- As duas rotas usam `Cache-Control: no-store` para evitar catálogo antigo no CDN.\n\n## Como o site recebe as mudanças
 
 - Com PostgreSQL conectado, a Function Rust consulta o banco e o frontend usa `cache: no-store`; as mudanças aparecem sem rebuild do frontend.
 - Sem `DATABASE_URL`, o JSON versionado é o fallback da Function Rust. O commit do JSON dispara um novo deploy da Vercel, que incorpora o catálogo atualizado.
@@ -27,11 +27,11 @@ As duas Actions consultam a API pública do GitHub para descobrir os repositóri
 
 ## Configuração
 
-Cadastrar o mesmo segredo privado `DATABASE_URL`:
+Para habilitar a fonte PostgreSQL, cadastrar o mesmo segredo privado `DATABASE_URL`:
 - no projeto Vercel `dark-legion`;
 - nos GitHub Actions Secrets do repositório.
 
-O valor nunca deve ser enviado em Issues, commits ou mensagens. Nenhum Personal Access Token é necessário para a leitura dos repositórios públicos.
+O valor nunca deve ser enviado em Issues, commits ou mensagens. Prefira a URL de conexão com pooler do provedor PostgreSQL para reduzir conexões serverless. Sem `DATABASE_URL` na Vercel, a Function informa `bundled-json` e usa o catálogo versionado. Nenhum Personal Access Token é necessário para a leitura dos repositórios públicos.
 
 ## Limites de segurança
 
