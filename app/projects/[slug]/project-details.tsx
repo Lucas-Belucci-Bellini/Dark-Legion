@@ -20,7 +20,7 @@ export default function ProjectDetails({ slug, initialProject }: ProjectDetailsP
     fetchPublicProjects()
       .then((catalog) => {
         if (!active) return;
-        setProject(catalog.find((item) => item.slug === slug) ?? initialProject);
+        setProject(catalog.find((item) => item.slug === slug) ?? null);
         setRequestFailed(false);
       })
       .catch(() => {
