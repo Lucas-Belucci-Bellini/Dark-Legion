@@ -33,6 +33,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f data/public-projects.sql
+      - name: Report database synchronization mode
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "::warning::DATABASE_URL is not configured; this run generated the SQL snapshot but did not apply it to PostgreSQL."
+            {
+              echo "### PostgreSQL synchronization"
+              echo "⚠️ SQL snapshot generated, but not applied: configure the `DATABASE_URL` Actions secret to enable remote synchronization."
+              echo "The Vercel Function will use the bundled JSON until its own `DATABASE_URL` environment variable is configured."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### PostgreSQL synchronization"
+              echo "✅ SQL snapshot applied successfully to PostgreSQL."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Commit SQL snapshot when changed
         run: |
           git config user.name "github-actions[bot]"
