@@ -1,0 +1,42 @@
+name: Public catalog analysis — 14h BRT
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: public-catalog-analysis
+  cancel-in-progress: false
+jobs:
+  analyze-and-sync:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate public catalog and generate SQL
+        run: python scripts/analyze_catalog.py
+      - name: Apply SQL to PostgreSQL when configured
+        if: ${{ env.DATABASE_URL != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f data/public-projects.sql
+      - name: Commit SQL snapshot when changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/public-projects.sql
+          if git diff --cached --quiet; then
+            echo "SQL snapshot is already up to date."
+          else
+            git commit -m "chore(data): refresh afternoon public catalog SQL"
+            git push origin HEAD:main
+          fi
