@@ -323,7 +323,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        let projects = json["data"].as_array().expect("catalog data must be an array");
+        let projects = json["data"]\n            .as_array()\n            .expect("catalog data must be an array");
 
         assert!(projects.len() >= 70);
         assert_eq!(json["meta"]["count"].as_u64(), Some(projects.len() as u64));
