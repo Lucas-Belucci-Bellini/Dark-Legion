@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { projects as fallbackProjects, type Project } from "@/data/projects";
-import { fetchPublicProjects } from "@/lib/projects-api";
+import { fetchPublicCatalog, type CatalogSource } from "@/lib/projects-api";
 
 type SortMode = "priority" | "name";
 
@@ -13,18 +13,18 @@ export default function HomePage() {
   const [sortMode, setSortMode] = useState<SortMode>("priority");
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [projectCatalog, setProjectCatalog] = useState<Project[]>(fallbackProjects);
-  const [catalogSource, setCatalogSource] = useState<"local" | "api">("local");
+  const [catalogSource, setCatalogSource] = useState<CatalogSource | "local-fallback">("local-fallback");
 
   useEffect(() => {
     let active = true;
-    fetchPublicProjects()
-      .then((remoteProjects) => {
+    fetchPublicCatalog()
+      .then((catalog) => {
         if (!active) return;
-        setProjectCatalog(remoteProjects);
-        setCatalogSource("api");
+        setProjectCatalog(catalog.projects);
+        setCatalogSource(catalog.source);
       })
       .catch(() => {
-        if (active) setCatalogSource("local");
+        if (active) setCatalogSource("local-fallback");
       });
 
     return () => {
@@ -60,7 +60,7 @@ export default function HomePage() {
       );
   }, [category, featuredOnly, projectCatalog, query, sortMode]);
 
-  const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;
+  const verifiedWebsiteCount = projectCatalog.filter((project) => project.websiteUrl).length;\n  const catalogSourceLabel =\n    catalogSource === "postgresql"\n      ? "PostgreSQL conectado"\n      : catalogSource === "bundled-json"\n        ? "JSON versionado (fallback)"\n        : catalogSource === "unknown"\n          ? "API Rust (fonte não identificada)"\n          : "catálogo local (API indisponível)";
 
   function clearFilters() {
     setQuery("");
@@ -123,7 +123,7 @@ export default function HomePage() {
             <p className="eyebrow">01 / DIRETÓRIO</p>
             <h2>Projetos públicos<span>.</span></h2>
             <p className="section-copy">Explore os repositórios, filtre por área e abra uma página dedicada para cada projeto.</p>
-            <p className="section-copy" aria-live="polite">Fonte ativa: {catalogSource === "api" ? "API Rust" : "catálogo local versionado"}.</p>
+            <p className="section-copy" aria-live="polite">Fonte ativa: <strong>{catalogSourceLabel}</strong>.</p>
           </div>
           <span className="count-pill">{visibleProjects.length.toString().padStart(2, "0")} / {projectCatalog.length.toString().padStart(2, "0")} RESULTADOS</span>
         </div>
