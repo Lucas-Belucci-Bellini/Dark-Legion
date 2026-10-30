@@ -8,12 +8,16 @@ publish = false
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "postgres", "macros"] }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 vercel_runtime = "2"
 
 [[bin]]
 name = "catalog"
 path = "api/catalog.rs"
+
+[[bin]]
+name = "health"
+path = "api/health.rs"
 
 [profile.release]
 codegen-units = 1
