@@ -1,9 +1,0 @@
-c:\Users\SpartanGamerBR\Workspace Github\Dark-Legion\target\debug\deps\futures_macro-55d1061bac3e10c8.d: C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\lib.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\executor.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\join.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\select.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\stream_select.rs
-
-c:\Users\SpartanGamerBR\Workspace Github\Dark-Legion\target\debug\deps\futures_macro-55d1061bac3e10c8.dll: C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\lib.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\executor.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\join.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\select.rs C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\stream_select.rs
-
-C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\lib.rs:
-C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\executor.rs:
-C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\join.rs:
-C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\select.rs:
-C:\Users\SpartanGamerBR\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\futures-macro-0.3.34\src\stream_select.rs:
